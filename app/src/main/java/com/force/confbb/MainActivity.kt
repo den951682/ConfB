@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.force.confbb.ui.App
 import com.force.confbb.ui.rememberAppState
 import com.force.confbb.ui.theme.ConfBBTheme
 import com.force.confbb.util.isSystemInDarkTheme
@@ -73,13 +74,11 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val appState = rememberAppState()
-            ConfBBTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = text,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            ConfBBTheme(
+                darkTheme = themeSettings.darkTheme,
+                dynamicColor = false
+            ) {
+                App(appState)
             }
         }
     }
