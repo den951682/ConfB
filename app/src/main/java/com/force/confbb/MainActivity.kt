@@ -71,7 +71,6 @@ class MainActivity : ComponentActivity() {
                     }
             }
         }
-        enableEdgeToEdge()
         setContent {
             val appState = rememberAppState()
             ConfBBTheme {
