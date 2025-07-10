@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">ConfBB</string>
+    <string name="item_status">Status</string>
+    <string name="item_history">History</string>
+    <string name="item_settings">Settings</string>
     <string name="test_message">Test Message</string>
 </resources>
