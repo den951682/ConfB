@@ -99,19 +99,3 @@ private val darkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 data class ThemeSettings(
     val darkTheme: Boolean
 )
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ConfBBTheme {
-        Greeting("Android")
-    }
-}
