@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.DateRange
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,19 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import com.force.confbb.R
 import com.force.confbb.designsystem.MyNavigationSuiteScaffold
-
-enum class Item(
-    val icon: ImageVector, val textId: Int
-) {
-    STATUS(Icons.Rounded.Info, R.string.item_status), HISTORY(Icons.Rounded.DateRange, R.string.item_history), SETTINGS(
-        Icons.Rounded.Settings,
-        R.string.item_settings
-    ),
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +46,7 @@ fun App(
     modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo()
 ) {
+    val currentDestination = appState.currentDestination
     var showDialog by rememberSaveable { mutableStateOf(false) }
     if (showDialog) {
         SettingsDialog { showDialog = false }
@@ -72,14 +63,21 @@ fun App(
 
     MyNavigationSuiteScaffold(
         items = {
-            Item.entries.forEachIndexed { index, item ->
-                item(selected = index == 1, onClick = {}, icon = {
-                    Icon(
-                        imageVector = item.icon, contentDescription = stringResource(item.textId)
-                    )
-                }, label = {
-                    Text(stringResource(item.textId))
-                })
+            appState.topLevelDestinations.forEach { item ->
+                item(
+                    selected = currentDestination?.hasRoute(item.route) == true,
+                    onClick = {
+                        appState.navigateToTopLevelDestination(item)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = item.icon, contentDescription = stringResource(item.textId)
+                        )
+                    },
+                    label = {
+                        Text(stringResource(item.textId))
+                    }
+                )
             }
         }, windowAdaptiveInfo = windowAdaptiveInfo
     ) {
@@ -137,7 +135,20 @@ fun App(
                             }
                         )
                 ) {
-                    Text("Example Text")
+                    NavHost(
+                        navController = appState.navController,
+                        startDestination = StatusRoute
+                    ) {
+                        composable<StatusRoute> {
+                            Status()
+                        }
+                        composable<HistoryRoute> {
+                            History()
+                        }
+                        composable<SettingsRoute> {
+                            Settings()
+                        }
+                    }
                 }
             }
         }
