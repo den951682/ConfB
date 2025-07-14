@@ -12,15 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -39,7 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import com.force.confbb.designsystem.DraggableScrollbar
-import com.force.confbb.designsystem.ScrollbarState
+import com.force.confbb.designsystem.LoadingOverlayWheel
 import com.force.confbb.designsystem.rememberDraggableScroller
 import com.force.confbb.designsystem.scrollbarState
 import kotlinx.coroutines.delay
@@ -131,8 +128,8 @@ fun Settings(
             }
         }
 
-        val visible = flow<Boolean> {
-            delay(1000)
+        val visible = flow {
+            delay(30000)
             emit(false)
         }.collectAsStateWithLifecycle(
             initialValue = true
@@ -163,22 +160,16 @@ fun Settings(
             visible = visible.value,
             enter = slideInVertically(
                 initialOffsetY = { -it },
-                animationSpec = tween(durationMillis = 700) // длительность появления
+                animationSpec = tween(durationMillis = 700)
             ) + fadeIn(animationSpec = tween(700)),
             exit = slideOutVertically(
                 targetOffsetY = { -it },
-                animationSpec = tween(durationMillis = 500) // длительность исчезновения
+                animationSpec = tween(durationMillis = 500)
             ) + fadeOut(animationSpec = tween(500)),
         ) {
-            Box(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .size(60.dp)
-                    .align(Alignment.TopCenter)
-                    .background(Color.Yellow)
-            ) {
-            }
-
+            LoadingOverlayWheel(
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }
