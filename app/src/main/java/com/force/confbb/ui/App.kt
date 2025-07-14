@@ -53,7 +53,7 @@ fun App(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val showMessage = true
+    val showMessage = false
     val stringMessage = stringResource(R.string.test_message)
     LaunchedEffect(showMessage) {
         if (showMessage) {
