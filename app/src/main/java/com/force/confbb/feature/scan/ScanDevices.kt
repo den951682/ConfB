@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -89,7 +90,7 @@ fun ScanDevices(
                     )
                 }
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(devices, key = { it.name }) { device ->
+                    items(devices, key = { it.address }) { device ->
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {},
@@ -98,23 +99,27 @@ fun ScanDevices(
                         }
                     }
                 }
-                AnimatedVisibility(
-                    scanStatus != ScanDevicesStatus.SCANNING,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Button(
-                        onClick = { viewModel.startScan() },
+                Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    AnimatedVisibility(
+                        scanStatus != ScanDevicesStatus.SCANNING,
+                    ) {
+                        Button(
+                            onClick = { viewModel.startScan() },
 
-                        ) {
-                        Text(stringResource(R.string.retry))
+                            ) {
+                            Text(stringResource(R.string.retry))
+                        }
                     }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(
-                    onClick = { onDismiss() },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text(stringResource(R.string.cancel))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = {
+                            viewModel.stopScan()
+                            onDismiss()
+                        },
+                        modifier = Modifier
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
                 }
             }
         }

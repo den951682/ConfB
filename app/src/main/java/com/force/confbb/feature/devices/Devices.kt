@@ -63,9 +63,10 @@ fun Devices(
                 Manifest.permission.BLUETOOTH_CONNECT
             )
         } else {
-            // This permission is normal, and don`t require runtime permission request
             listOf(
-                Manifest.permission.BLUETOOTH
+                // This permission is normal, and don`t require runtime permission request
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
         }
     )
