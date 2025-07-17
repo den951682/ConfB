@@ -1,6 +1,9 @@
 <resources>
+    <string name="add_permission_for_bluetooth">Якщо кнопка "+" не працює, то відкрий налаштування додатку і увімкни дозволи для Bluetooth/Пристрої поряд</string>
     <string name="app_name">ConfBB</string>
     <string name="cancel">Відміна</string>
+    <string name="enable_bt_action">Вімкнути</string>
+    <string name="enable_bt_hint">Щоб підключитись до пристрою, увімкни Bluetooth</string>
     <string name="item_devices">Пристрої</string>
     <string name="item_history">History</string>
     <string name="item_settings">Settings</string>

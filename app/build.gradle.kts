@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation.suite.android)
     implementation(libs.androidx.navigation)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.accompanist.permissions)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

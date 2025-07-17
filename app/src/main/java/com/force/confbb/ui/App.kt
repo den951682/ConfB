@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult.ActionPerformed
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -34,8 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import com.force.confbb.R
 import com.force.confbb.designsystem.MyNavigationSuiteScaffold
 
@@ -135,7 +134,16 @@ fun App(
                             }
                         )
                 ) {
-                    ConfNavHost(appState.navController)
+                    ConfNavHost(
+                        appState.navController,
+                        onShowSnackbar = { message, action, length ->
+                            snackbarHostState.showSnackbar(
+                                message = message,
+                                actionLabel = action,
+                                duration = length,
+                            ) == ActionPerformed
+                        }
+                    )
                 }
             }
         }

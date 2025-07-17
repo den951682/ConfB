@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
@@ -15,6 +16,7 @@ class FakeDevicesRepository @Inject constructor(
     @ApplicationScope
     private val scope: CoroutineScope
 ) : DevicesRepository {
+    override val enabled = flowOf(false)
     private val _status = MutableStateFlow(ScanDevicesStatus.IDDLE)
     override val status = _status.asStateFlow()
 

@@ -1,5 +1,6 @@
 package com.force.confbb.ui
 
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,7 +14,8 @@ import com.force.confbb.feature.scan.navigateToScan
 
 @Composable
 fun ConfNavHost(
-    navController: NavHostController
+    navController: NavHostController,
+    onShowSnackbar: suspend (String, String, SnackbarDuration) -> Boolean
 ) {
     NavHost(
         navController = navController,
@@ -21,6 +23,7 @@ fun ConfNavHost(
     ) {
         composable<DevicesRoute> {
             Devices(
+                onShowSnackbar = onShowSnackbar,
                 onAddDeviceClick = navController::navigateToScan,
             )
         }

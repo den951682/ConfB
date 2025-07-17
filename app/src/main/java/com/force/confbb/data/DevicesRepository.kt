@@ -5,6 +5,7 @@ import com.force.confbb.model.ScanDevicesStatus
 import kotlinx.coroutines.flow.Flow
 
 interface DevicesRepository {
+    val enabled: Flow<Boolean>
     val status: Flow<ScanDevicesStatus>
     val devices: Flow<List<Device>>
     fun startScan()
