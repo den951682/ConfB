@@ -81,6 +81,15 @@ fun ScanDevices(
                     Text(stringResource(R.string.scan_devices_title), style = MaterialTheme.typography.titleLarge)
                 }
                 AnimatedVisibility(
+                    scanStatus == ScanDevicesStatus.SUCCESS && devices.isEmpty(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        textAlign = TextAlign.Center,
+                        text = stringResource(R.string.scan_devices_empty)
+                    )
+                }
+                AnimatedVisibility(
                     scanStatus == ScanDevicesStatus.FAILED,
                     modifier = Modifier.fillMaxWidth()
                 ) {
