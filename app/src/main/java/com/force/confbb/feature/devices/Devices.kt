@@ -2,6 +2,7 @@ package com.force.confbb.feature.devices
 
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -51,10 +52,17 @@ fun Devices(
     viewModel: DevicesViewModel = hiltViewModel()
 ) {
     val permissionState = rememberMultiplePermissionsState(
-        listOf(
-            android.Manifest.permission.BLUETOOTH_SCAN,
-            android.Manifest.permission.BLUETOOTH_CONNECT
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(
+                android.Manifest.permission.BLUETOOTH_SCAN,
+                android.Manifest.permission.BLUETOOTH_CONNECT
+            )
+        } else {
+            // This permission is normal, and don`t require runtime permission request
+            listOf(
+                android.Manifest.permission.BLUETOOTH
+            )
+        }
     )
     var requestPermission by remember { mutableStateOf(false) }
     val enabledState by viewModel.isBluetoothEnabled.collectAsStateWithLifecycle()
@@ -108,7 +116,7 @@ fun Devices(
             contentAlignment = Alignment.Center
         ) {
             AnimatedVisibility(
-                requestPermission,
+                requestPermission && !permissionState.allPermissionsGranted,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(24.dp)
