@@ -1,5 +1,6 @@
 package com.force.confbb.feature.devices
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Build
@@ -7,8 +8,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -24,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,20 +59,20 @@ fun Devices(
     val permissionState = rememberMultiplePermissionsState(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(
-                android.Manifest.permission.BLUETOOTH_SCAN,
-                android.Manifest.permission.BLUETOOTH_CONNECT
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
             )
         } else {
             // This permission is normal, and don`t require runtime permission request
             listOf(
-                android.Manifest.permission.BLUETOOTH
+                Manifest.permission.BLUETOOTH
             )
         }
     )
     var requestPermission by remember { mutableStateOf(false) }
     val enabledState by viewModel.isBluetoothEnabled.collectAsStateWithLifecycle()
     val startForResult = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
-    stringResource(R.string.enable_bt_hint)
+    val devices by viewModel.devices.collectAsStateWithLifecycle()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -119,7 +124,7 @@ fun Devices(
                 requestPermission && !permissionState.allPermissionsGranted,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp)
+                    .padding(32.dp)
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -129,6 +134,30 @@ fun Devices(
                         stringResource(R.string.add_permission_for_bluetooth),
                         textAlign = TextAlign.Center,
                     )
+                }
+            }
+            AnimatedVisibility(
+                !requestPermission && devices.isEmpty(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column {
+                        Icon(
+                            painter = painterResource(id = R.drawable.no_devices),
+                            contentDescription = null,
+                            modifier = Modifier.size(172.dp).align(Alignment.CenterHorizontally),
+                            tint = Color.Gray.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            stringResource(R.string.no_devices),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
