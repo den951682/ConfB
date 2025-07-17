@@ -104,7 +104,7 @@ fun App(
                 val shouldShowTopAppBar = true
                 if (shouldShowTopAppBar) {
                     CenterAlignedTopAppBar(
-                        title = { Text(stringResource(R.string.item_status)) },
+                        title = { Text(stringResource(R.string.item_devices)) },
                         actions = {
                             IconButton(
                                 onClick = { showDialog = true },

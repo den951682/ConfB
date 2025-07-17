@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import com.force.confbb.feature.devices.navigateToDevices
 import com.force.confbb.navigation.TopLevelDestination
 import kotlinx.coroutines.CoroutineScope
 
@@ -52,7 +53,7 @@ class AppState(
             restoreState = true
         }
         when (topLevelDestination) {
-            TopLevelDestination.STATUS -> navController.navigateToStatus(navOptions)
+            TopLevelDestination.STATUS -> navController.navigateToDevices(navOptions)
             TopLevelDestination.HISTORY -> navController.navigateToHistory(navOptions)
             TopLevelDestination.SETTINGS -> navController.navigateToSettings(navOptions)
         }

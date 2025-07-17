@@ -12,6 +12,7 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -37,7 +38,9 @@ private const val LINES = 20
 private const val PERIOD = 12000
 
 @Composable
-fun LoadingWheel() {
+fun LoadingWheel(
+    modifier: Modifier = Modifier.size(48.dp)
+) {
     val transition = rememberInfiniteTransition("wheel")
     val startValue = if (LocalInspectionMode.current) 0f else 1f
     val floatValues = (0..LINES).map { remember { Animatable(startValue) } }
@@ -86,8 +89,7 @@ fun LoadingWheel() {
         )
     }
     Canvas(
-        modifier = Modifier
-            .size(48.dp)
+        modifier = modifier
             .padding(8.dp)
             .graphicsLayer {
                 rotationZ = rotationAnim
@@ -112,12 +114,11 @@ fun LoadingOverlayWheel(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = RoundedCornerShape(60.dp),
+        shape = RoundedCornerShape(percent = 10),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
         shadowElevation = 8.dp,
         modifier = modifier
-            .size(60.dp)
-            .wrapContentSize()
+            .fillMaxSize()
     ) {
         LoadingWheel()
     }
