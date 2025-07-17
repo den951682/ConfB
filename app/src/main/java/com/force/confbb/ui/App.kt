@@ -135,20 +135,7 @@ fun App(
                             }
                         )
                 ) {
-                    NavHost(
-                        navController = appState.navController,
-                        startDestination = StatusRoute
-                    ) {
-                        composable<StatusRoute> {
-                            Status()
-                        }
-                        composable<HistoryRoute> {
-                            History()
-                        }
-                        composable<SettingsRoute> {
-                            Settings()
-                        }
-                    }
+                    ConfNavHost(appState.navController)
                 }
             }
         }
