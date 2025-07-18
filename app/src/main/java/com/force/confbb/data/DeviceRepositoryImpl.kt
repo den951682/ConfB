@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.annotation.RequiresPermission
-import androidx.core.content.ContextCompat
 import com.force.confbb.model.Device
 import com.force.confbb.model.ScanDevicesStatus
 import com.force.confbb.util.BluetoothMonitor
