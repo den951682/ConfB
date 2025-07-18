@@ -19,10 +19,9 @@ import javax.inject.Inject
 
 class DeviceRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val bluetoothManager: BluetoothManager,
     private val bluetoothMonitor: BluetoothMonitor
 ) : DevicesRepository {
-    private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-
     private val receiver = object : BroadcastReceiver() {
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         override fun onReceive(context: Context, intent: Intent) {
