@@ -11,6 +11,8 @@ import com.force.confbb.feature.devices.DevicesRoute
 import com.force.confbb.feature.scan.ScanDevices
 import com.force.confbb.feature.scan.ScanRoute
 import com.force.confbb.feature.scan.navigateToScan
+import com.force.confbb.feature.terminal.navigateToTerminal
+import com.force.confbb.feature.terminal.terminalSection
 
 @Composable
 fun ConfNavHost(
@@ -27,9 +29,12 @@ fun ConfNavHost(
                 onAddDeviceClick = navController::navigateToScan,
             )
         }
-        composable<HistoryRoute> {
-            History()
-        }
+        terminalSection(
+            onDeviceClick = navController::navigateToTerminal,
+            getBackStackEntry = { entry ->
+                navController.getBackStackEntry(entry)
+            }
+        )
         composable<SettingsRoute> {
             Settings()
         }

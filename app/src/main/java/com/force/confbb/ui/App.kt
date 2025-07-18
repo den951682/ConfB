@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -33,16 +34,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import com.force.confbb.R
 import com.force.confbb.designsystem.MyNavigationSuiteScaffold
+import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     appState: AppState,
-    modifier: Modifier = Modifier,
     windowAdaptiveInfo: WindowAdaptiveInfo = currentWindowAdaptiveInfo()
 ) {
     val currentDestination = appState.currentDestination
@@ -52,25 +58,20 @@ fun App(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val showMessage = false
-    val stringMessage = stringResource(R.string.test_message)
-    LaunchedEffect(showMessage) {
-        if (showMessage) {
-            snackbarHostState.showSnackbar(message = stringMessage, duration = SnackbarDuration.Indefinite)
-        }
-    }
 
     MyNavigationSuiteScaffold(
         items = {
             appState.topLevelDestinations.forEach { item ->
                 item(
-                    selected = currentDestination?.hasRoute(item.route) == true,
+                    selected = currentDestination?.isRouteInHierarchy(item.route) == true,
                     onClick = {
                         appState.navigateToTopLevelDestination(item)
                     },
                     icon = {
+                        val icon = item.icon ?: item.iconRes?.let { ImageVector.vectorResource(id = it) }
                         Icon(
-                            imageVector = item.icon, contentDescription = stringResource(item.textId)
+                            imageVector = icon!!, contentDescription = stringResource(item.textId),
+                            modifier = Modifier.size(24.dp)
                         )
                     },
                     label = {
@@ -100,7 +101,7 @@ fun App(
                         )
                     )
             ) {
-                val shouldShowTopAppBar = true
+                val shouldShowTopAppBar = false
                 if (shouldShowTopAppBar) {
                     CenterAlignedTopAppBar(
                         title = { Text(stringResource(R.string.item_devices)) },
@@ -149,3 +150,8 @@ fun App(
         }
     }
 }
+
+private fun NavDestination?.isRouteInHierarchy(route: KClass<*>) =
+    this?.hierarchy?.any {
+        it.hasRoute(route)
+    } ?: false

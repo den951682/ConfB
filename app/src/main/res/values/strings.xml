@@ -5,13 +5,12 @@
     <string name="enable_bt_action">Вімкнути</string>
     <string name="enable_bt_hint">Щоб підключитись до пристрою, увімкни Bluetooth</string>
     <string name="item_devices">Пристрої</string>
-    <string name="item_history">History</string>
     <string name="item_settings">Settings</string>
+    <string name="item_terminal">Термінал</string>
     <string name="no_devices">У тебе немає підключених пристроїв, увімкни пристрій і натисни кнопку "+"</string>
     <string name="retry">Повторити</string>
     <string name="scan_devices_empty">Нічого не знайдено, увімкніть пристрій та переведіть його в режим видимості</string>
     <string name="scan_devices_failed">Помилка роботи з Bluetooth, перевір, чи він увімкнений</string>
     <string name="scan_devices_hint">Переконайтесь, що пристрій увімкнено</string>
     <string name="scan_devices_title">Пошук пристроїв</string>
-    <string name="test_message">Test Message</string>
 </resources>
