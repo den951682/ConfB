@@ -3,6 +3,8 @@
     <string name="app_name">ConfBB</string>
     <string name="available_devices">Доступні пристрої</string>
     <string name="cancel">Відміна</string>
+    <string name="connected">Підключено: %1$s</string>
+    <string name="connecting">Підключення</string>
     <string name="empty_search">Нічого не знайдено</string>
     <string name="enable_bt_action">Вімкнути</string>
     <string name="enable_bt_hint">Щоб підключитись до пристрою, увімкни Bluetooth</string>
@@ -18,4 +20,5 @@
     <string name="scan_devices_title">Пошук пристроїв</string>
     <string name="terminal_devices_hint">Вибери пристрій для обміну текстом через Bluetooth Serial Port Profile (текст передається як є, без шифрування)</string>
     <string name="terminal_no_bluetooth">Потрібно увімкнути Bluetooth</string>
+    <string name="text_to_send">Текст для відправки</string>
 </resources>

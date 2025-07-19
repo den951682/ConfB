@@ -30,10 +30,7 @@ fun ConfNavHost(
             )
         }
         terminalSection(
-            onDeviceClick = navController::navigateToTerminal,
-            getBackStackEntry = { entry ->
-                navController.getBackStackEntry(entry)
-            }
+            onDeviceClick = navController::navigateToTerminal
         )
         composable<SettingsRoute> {
             Settings()

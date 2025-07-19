@@ -2,51 +2,51 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.DevicesRepository
-import com.force.confbb.model.Device
-import com.force.confbb.model.ScanDevicesStatus
+import com.force.confbb.data.BluetoothDeviceConnectionRepository
+import com.force.confbb.model.DeviceConnectionStatus
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
+import kotlinx.coroutines.launch
 
-@HiltViewModel
-class TerminalViewModel @Inject constructor(
-    private val devicesRepository: DevicesRepository
+@HiltViewModel(assistedFactory = TerminalViewModel.Factory::class)
+class TerminalViewModel @AssistedInject constructor(
+    @Assisted val deviceAddress: String,
+    factory: BluetoothDeviceConnectionRepository.Factory
 ) : ViewModel() {
-    val isBluetoothEnabled = devicesRepository.enabled.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        false
-    )
 
-    val status: StateFlow<ScanDevicesStatus> = devicesRepository.status.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ScanDevicesStatus.IDDLE,
-    )
+    private val connectionRepository = factory.create(deviceAddress)
 
-    val devices: StateFlow<List<Device>> = devicesRepository.devices.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptyList(),
-    )
+    private val _items = MutableStateFlow<List<DeviceConnectionStatus>>(emptyList())
+    val items: StateFlow<List<DeviceConnectionStatus>> = _items
 
     init {
-        startScan()
+        viewModelScope.launch {
+            connectionRepository.data.collect { status ->
+                _items.value += status
+                if (_items.value.size > 256) {
+                    _items.value = _items.value.takeLast(128)
+                }
+            }
+        }
     }
 
-    fun startScan() {
-        devicesRepository.startScan()
-    }
-
-    fun stopScan() {
-        devicesRepository.stopScan()
+    fun send(text: String) {
+        connectionRepository.send(text.toByteArray())
     }
 
     override fun onCleared() {
         super.onCleared()
-        stopScan()
+        connectionRepository.close()
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            deviceAddress: String,
+        ): TerminalViewModel
     }
 }

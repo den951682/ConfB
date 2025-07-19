@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -19,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult.ActionPerformed
@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,14 +57,17 @@ fun App(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-
+    val destination = appState.currentTopLevelDestination
     MyNavigationSuiteScaffold(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.ime),
         items = {
             appState.topLevelDestinations.forEach { item ->
                 item(
                     selected = currentDestination?.isRouteInHierarchy(item.route) == true,
                     onClick = {
-                        appState.navigateToTopLevelDestination(item)
+                        if (destination != item) {
+                            appState.navigateToTopLevelDestination(item)
+                        }
                     },
                     icon = {
                         val icon = item.icon ?: item.iconRes?.let { ImageVector.vectorResource(id = it) }

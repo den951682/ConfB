@@ -30,7 +30,7 @@ import com.force.confbb.model.ScanDevicesStatus
 @Composable
 fun TerminalDevices(
     onDeviceClick: (String) -> Unit,
-    viewModel: TerminalViewModel = hiltViewModel()
+    viewModel: TerminalDevicesViewModel = hiltViewModel()
 ) {
     Box(
         modifier = Modifier
@@ -93,7 +93,7 @@ fun TerminalDevices(
                     items(devices, key = { it.address }) { device ->
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = {},
+                            onClick = { onDeviceClick(device.address) },
                         ) {
                             Text(text = device.name)
                         }
