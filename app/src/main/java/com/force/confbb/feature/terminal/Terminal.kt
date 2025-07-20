@@ -108,6 +108,8 @@ fun Terminal(
                             text = String(message.byteArray)
                         )
                     }
+
+                    else -> Unit
                 }
             }
         }

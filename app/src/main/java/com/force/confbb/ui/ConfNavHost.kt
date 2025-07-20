@@ -6,6 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
+import com.force.confbb.feature.device.deviceSection
+import com.force.confbb.feature.device.navigateToConnectDevice
+import com.force.confbb.feature.device.navigateToDevice
 import com.force.confbb.feature.devices.Devices
 import com.force.confbb.feature.devices.DevicesRoute
 import com.force.confbb.feature.scan.ScanDevices
@@ -13,11 +16,12 @@ import com.force.confbb.feature.scan.ScanRoute
 import com.force.confbb.feature.scan.navigateToScan
 import com.force.confbb.feature.terminal.navigateToTerminal
 import com.force.confbb.feature.terminal.terminalSection
+import kotlinx.coroutines.delay
 
 @Composable
 fun ConfNavHost(
     navController: NavHostController,
-    onShowSnackbar: suspend (String, String, SnackbarDuration) -> Boolean
+    onShowSnackbar: suspend (String, String?, SnackbarDuration) -> Boolean
 ) {
     NavHost(
         navController = navController,
@@ -29,6 +33,18 @@ fun ConfNavHost(
                 onAddDeviceClick = navController::navigateToScan,
             )
         }
+        deviceSection(
+            onConnected = { navController.navigateToDevice(it) },
+            onError = {
+                onShowSnackbar(
+                    it?.message ?: "An error occurred",
+                    null,
+                    SnackbarDuration.Short
+                )
+                navController.popBackStack()
+            },
+            parentEntry = { navController.getBackStackEntry<Any>(it) }
+        )
         terminalSection(
             onDeviceClick = navController::navigateToTerminal
         )
@@ -37,7 +53,11 @@ fun ConfNavHost(
         }
         dialog<ScanRoute> {
             ScanDevices(
-                onDismiss = navController::popBackStack
+                onDismiss = navController::popBackStack,
+                onDeviceClick = { id ->
+                    navController.popBackStack()
+                    navController.navigateToConnectDevice(id)
+                },
             )
         }
     }

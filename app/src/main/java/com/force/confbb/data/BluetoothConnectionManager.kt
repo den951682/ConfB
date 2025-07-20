@@ -11,12 +11,15 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.OutputStream
 import java.util.UUID
 
-class BluetoothConnectionManager(
+open class BluetoothConnectionManager(
     private val device: BluetoothDevice
 ) : DeviceConnectionRepository {
     private val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -56,6 +59,19 @@ class BluetoothConnectionManager(
         }
     }
 
+    override suspend fun listenInputStream(input: InputStream, isActive: () -> Boolean) {
+        try {
+            BufferedReader(InputStreamReader(input)).use { reader ->
+                var line = ""
+                while (reader.readLine().also { line = it } != null && isActive()) {
+                    _data.emit(DeviceConnectionStatus.Message(line.toByteArray()))
+                }
+            }
+        } catch (e: Exception) {
+            close(e)
+        }
+    }
+
     override fun send(data: ByteArray) {
         scope.launch {
             try {
@@ -70,18 +86,7 @@ class BluetoothConnectionManager(
 
     private fun listenForIncomingData() {
         scope.launch {
-            try {
-                val buffer = ByteArray(1024)
-                while (true) {
-                    val bytesRead = input?.read(buffer) ?: break
-                    if (bytesRead > 0) {
-                        val data = buffer.copyOf(bytesRead)
-                        _data.emit(DeviceConnectionStatus.Message(data))
-                    }
-                }
-            } catch (e: Exception) {
-                close(e)
-            }
+            listenInputStream(input!!, { isActive })
         }
     }
 

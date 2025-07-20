@@ -49,6 +49,7 @@ fun NavController.navigateToScan(navOptions: NavOptions? = null) {
 @Composable
 fun ScanDevices(
     onDismiss: () -> Unit = {},
+    onDeviceClick: (String) -> Unit,
     viewModel: ScanDevicesViewModel = hiltViewModel()
 ) {
     val scanStatus by viewModel.status.collectAsStateWithLifecycle()
@@ -102,7 +103,7 @@ fun ScanDevices(
                     items(devices, key = { it.address }) { device ->
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = {},
+                            onClick = { onDeviceClick(device.address) },
                         ) {
                             Text(text = device.name)
                         }

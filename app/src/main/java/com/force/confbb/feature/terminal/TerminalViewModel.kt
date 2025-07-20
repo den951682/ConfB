@@ -35,7 +35,7 @@ class TerminalViewModel @AssistedInject constructor(
     }
 
     fun send(text: String) {
-        connectionRepository.send(text.toByteArray())
+        connectionRepository.send(("$text\n").toByteArray())
     }
 
     override fun onCleared() {
