@@ -2,6 +2,8 @@ package com.force.confbb.data
 
 import android.bluetooth.BluetoothManager
 import android.util.Log
+import com.force.confb.pmodel.HandshakeRequest
+import com.force.confb.pmodel.HandshakeResponse
 import com.force.confbb.di.ApplicationScope
 import com.force.confbb.model.DeviceConnectionStatus
 import dagger.assisted.Assisted
@@ -30,10 +32,10 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
             when {
                 (it is DeviceConnectionStatus.Connected) -> {
                     val guardText = "guard\n"
-                    val handshakeText = "HANDSHAKE"
+                    val request = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
                     coroutineScope.launch {
                         super.send(guardText.toByteArray())
-                        send(handshakeText.toByteArray())
+                        send(byteArrayOf(0) + request)
                     }
                 }
             }
@@ -62,12 +64,14 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
                             "Received message size: $b, " +
                                     "content: ${message.joinToString(" ") { "%02X".format(it) }}"
                         )
-
-                        val text = String(cryptoManager.decryptData(message))
-                        if (text == "HANDSHAKE ANSWER") {
-                            _cipherStatusDate.value = DeviceConnectionStatus.DataMessage()
+                        val data = cryptoManager.decryptData(message)
+                        if (data[0] == 1.toByte()) {
+                            val handhake = HandshakeResponse.parseFrom(data.drop(1).toByteArray())
+                            if (handhake.text == "HANDSHAKE ANSWER") {
+                                _cipherStatusDate.value = DeviceConnectionStatus.DataMessage()
+                            }
+                            Log.d("xxx", "Received text: $handhake.text")
                         }
-                        Log.d("xxx", "Received text: $text")
                     }
                 }
             }
