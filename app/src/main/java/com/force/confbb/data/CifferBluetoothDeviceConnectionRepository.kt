@@ -5,16 +5,19 @@ import android.util.Log
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.confb.pmodel.HandshakeResponse
 import com.force.confbb.di.ApplicationScope
+import com.force.confbb.model.ConfError
+import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import java.io.InputStream
 
+@Suppress("IMPLICIT_CAST_TO_ANY")
 class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
     @Assisted private val deviceAddress: String,
     @ApplicationScope private val coroutineScope: CoroutineScope,
@@ -24,11 +27,14 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
     coroutineScope = coroutineScope,
     bluetoothManager = bluetoothManager
 ) {
-    private val _cipherStatusDate = MutableStateFlow<DeviceConnectionStatus>(DeviceConnectionStatus.Disconnected)
+    private val _cipherStatusDate = MutableSharedFlow<DeviceConnectionStatus>(
+        replay = 1,
+        extraBufferCapacity = 1
+    )
 
     private val collectingJob = coroutineScope.launch {
         super.data.collect {
-            _cipherStatusDate.value = it
+            _cipherStatusDate.emit(it)
             when {
                 (it is DeviceConnectionStatus.Connected) -> {
                     val guardText = "guard\n"
@@ -42,20 +48,19 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
         }
     }
 
-    override val data: StateFlow<DeviceConnectionStatus> = _cipherStatusDate
+    override val data: SharedFlow<DeviceConnectionStatus> = _cipherStatusDate
 
     private lateinit var cryptoManager: CryptoManager
+
 
     override suspend fun listenInputStream(input: InputStream, isActive: () -> Boolean) {
         try {
             while (isActive()) {
                 input.read().let { b ->
                     if (b < 28) {
-                        Log.d(
-                            "xxx",
-                            "Received error $b, "
-                        )
-                        _cipherStatusDate.value = DeviceConnectionStatus.Error(Exception("Received error code: $b"))
+                        val error = ConfError.fromCode(b)
+                        Log.d("xxx", "Received error ${error.message}")
+                        throw error
                     } else {
                         val message = ByteArray(b)
                         repeat(b) { message[it] = input.read().toByte() }
@@ -65,24 +70,28 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
                                     "content: ${message.joinToString(" ") { "%02X".format(it) }}"
                         )
                         val data = cryptoManager.decryptData(message)
-                        if (data[0] == 1.toByte()) {
-                            val handhake = HandshakeResponse.parseFrom(data.drop(1).toByteArray())
-                            if (handhake.text == "HANDSHAKE ANSWER") {
-                                _cipherStatusDate.value = DeviceConnectionStatus.DataMessage()
+                        val dataType = DataType.fromCode(data[0])
+                        val dataToParse = data.drop(1).toByteArray()
+                        val proto = when (dataType) {
+                            is DataType.HandshakeResponse -> HandshakeResponse.parseFrom(dataToParse)
+                            else -> {
+                                Log.d("xxx", "Unhandled received data type: ${data[0]}")
+                                Unit
                             }
-                            Log.d("xxx", "Received text: $handhake.text")
                         }
+                        _cipherStatusDate.emit(DeviceConnectionStatus.DataMessage(proto))
                     }
                 }
+
             }
         } catch (ex: Exception) {
-            _cipherStatusDate.value = DeviceConnectionStatus.Error(ex)
+            _cipherStatusDate.emit(DeviceConnectionStatus.Error(ex))
         }
     }
 
     override fun send(data: ByteArray) {
         if (!::cryptoManager.isInitialized) {
-            cryptoManager = CryptoManager("PiroJOKE")
+            cryptoManager = CryptoManager("PiroJOKE1")
         }
         val (iv, encrypted) = cryptoManager.encryptData(data)
         val ivEncData = iv + encrypted
