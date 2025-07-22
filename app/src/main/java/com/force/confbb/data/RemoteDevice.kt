@@ -9,10 +9,10 @@ interface RemoteDevice {
     val parameters: SnapshotStateMap<Int, DeviceParameter<*>>
     fun close()
 
-    enum class State {
-        CONNECTING,
-        CONNECTED,
-        DISCONNECTED,
-        ERROR
+    sealed class State {
+        data object Connecting : State()
+        data object Connected : State()
+        data object Disconnected : State()
+        data class Error(val error: Throwable) : State()
     }
 }

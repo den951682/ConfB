@@ -32,15 +32,15 @@ class BluetoothRemoteDevice @AssistedInject constructor(
 
     override val state: StateFlow<RemoteDevice.State> = connection.data.map {
         when (it) {
-            is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.DISCONNECTED
-            is DeviceConnectionStatus.Connected -> RemoteDevice.State.CONNECTING
-            is DeviceConnectionStatus.Error -> RemoteDevice.State.ERROR
-            else -> RemoteDevice.State.CONNECTED
+            is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
+            is DeviceConnectionStatus.Connected -> RemoteDevice.State.Connected
+            is DeviceConnectionStatus.Error -> RemoteDevice.State.Error(it.error)
+            else -> RemoteDevice.State.Connected
         }
     }.stateIn(
         scope = scope,
         started = WhileSubscribed(5000),
-        initialValue = RemoteDevice.State.DISCONNECTED
+        initialValue = RemoteDevice.State.Disconnected
     )
 
     override val parameters: SnapshotStateMap<Int, DeviceParameter<*>> = _parameters

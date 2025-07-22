@@ -86,7 +86,7 @@ fun Terminal(
                                 .background(Color.Red.copy(alpha = 0.1f))
                                 .fillMaxWidth()
                                 .padding(4.dp),
-                            text = "Error: ${message.trouble?.message ?: "Unknown error"}",
+                            text = "Error: ${message.error.message ?: "Unknown error"}",
                             color = MaterialTheme.colorScheme.error
                         )
                     }

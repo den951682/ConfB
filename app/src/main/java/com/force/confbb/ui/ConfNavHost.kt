@@ -34,11 +34,10 @@ fun ConfNavHost(
         deviceSection(
             onError = {
                 onShowSnackbar(
-                    it?.message ?: "An error occurred",
+                    it?.message ?: "Щось не так",
                     null,
-                    SnackbarDuration.Short
+                    SnackbarDuration.Indefinite
                 )
-                navController.popBackStack()
             },
         )
         terminalSection(

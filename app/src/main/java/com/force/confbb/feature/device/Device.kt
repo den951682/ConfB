@@ -30,15 +30,15 @@ fun Device(
     onError: suspend (Throwable?) -> Unit,
     viewModel: DeviceViewModel = hiltViewModel()
 ) {
-    Text(text = "Device: $id")
-    val parameters = viewModel.remoteDevice.parameters
+    val parameterList = remember { derivedStateOf { viewModel.remoteDevice.parameters.entries.toList() } }
     val state by viewModel.remoteDevice.state.collectAsStateWithLifecycle()
 
-    val error by remember { derivedStateOf { state == RemoteDevice.State.ERROR } }
-    val connected by remember { derivedStateOf { state == RemoteDevice.State.CONNECTED } }
+    val error = state is RemoteDevice.State.Error
+    val connected = state is RemoteDevice.State.Connected
+
     LaunchedEffect(error) {
         if (error) {
-            //onError((message as DeviceConnectionStatus.Error).trouble)
+            kotlin.runCatching { onError((state as? RemoteDevice.State.Error)?.error) }
         }
     }
     if (!error && !connected) {
@@ -60,7 +60,7 @@ fun Device(
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(parameters.entries.toList()) { entry ->
+        items(parameterList.value) { entry ->
             Card {
                 Text(entry.value.name ?: "")
             }
