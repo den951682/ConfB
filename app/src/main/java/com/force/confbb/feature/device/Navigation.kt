@@ -24,6 +24,7 @@ fun NavController.navigateToDevice(id: String, navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.deviceSection(
+    onBack: () -> Unit,
     onError: suspend (Throwable?) -> Unit,
 ) {
     navigation<DeviceSectionRoute>(
@@ -34,6 +35,7 @@ fun NavGraphBuilder.deviceSection(
             Device(
                 id,
                 onError = onError,
+                onBack = onBack,
                 viewModel = hiltViewModel<DeviceViewModel, DeviceViewModel.Factory>(
                     key = id
                 ) { factory ->
