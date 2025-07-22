@@ -2,15 +2,18 @@ package com.force.confbb.data
 
 import android.bluetooth.BluetoothManager
 import android.util.Log
+import com.force.confb.pmodel.Disconnect
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.confb.pmodel.HandshakeResponse
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
+import com.force.confbb.util.TAG
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,18 +32,18 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
     scope = coroutineScope,
     bluetoothManager = bluetoothManager
 ) {
-   private lateinit var cryptoManager: CryptoManager
+    private lateinit var cryptoManager: CryptoManager
 
-    private val collectingJob = coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            super.data.collect {
-                when {
-                    (it is DeviceConnectionStatus.Connected) -> {
-                        val guardText = "guard\n"
-                        val request = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
-                        coroutineScope.launch {
+    init {
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                super.data.collect {
+                    when {
+                        (it is DeviceConnectionStatus.Connected) -> {
+                            val guardText = "guard\n"
+                            val request = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
                             super.send(guardText.toByteArray())
-                            send(byteArrayOf(0) + request)
+                            send(byteArrayOf(DataType.HandshakeRequest.code) + request)
                         }
                     }
                 }
@@ -54,22 +57,18 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                 if (input.available() > 0) {
                     input.read().let { b ->
                         if (b < 28) {
-                            val error = ConfError.fromCode(b)
-                            Log.d("xxx", "Received error ${error.message}")
-                            throw error
+                            throw ConfError.fromCode(b)
                         } else {
-                            Log.d("xxx", "Frame size: $b")
+                            Log.d(TAG, "Frame size: $b")
                             val message = ByteArray(b)
                             repeat(b) {
                                 while (input.available() <= 0 && isActive()) {
                                     delay(10)
                                 }
-                                message[it] = input.read().toByte().also {
-                                    //Log.d("xxx", "Read byte: ${"%02X".format(it)}")
-                                }
+                                message[it] = input.read().toByte()
                             }
                             Log.d(
-                                "xxx",
+                                TAG,
                                 "Received message size: $b, " +
                                         "content: ${message.joinToString(" ") { "%02X".format(it) }}"
                             )
@@ -85,46 +84,54 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                                 }
 
                                 else -> {
-                                    Log.d("xxx", "Unhandled received data type: ${data[0]}")
+                                    Log.d(TAG, "Unhandled received data type: ${data[0]}")
                                     Unit
                                 }
                             }
-                            Log.d("xxx", "Received data type: $dataType, content: $proto")
+                            Log.d(TAG, "Received data type: $dataType, content: $proto")
                             _data.tryEmit(DeviceConnectionStatus.DataMessage(proto))
                         }
                     }
                 } else {
-                    delay(250)
+                    delay(10)
                 }
             }
-            Log.e("xxx", "End of listen input stream reached")
+            Log.e(TAG, "End of listen input stream reached")
         } catch (ex: Exception) {
-            Log.e("xxx", "Error while reading input stream", ex)
-            _data.emit(DeviceConnectionStatus.Error(ex))
+            if (ex !is CancellationException) {
+                Log.e(TAG, "Error while reading input stream", ex)
+                _data.emit(DeviceConnectionStatus.Error(ex))
+            }
         }
     }
 
     override fun send(data: ByteArray) {
-        if (!::cryptoManager.isInitialized) {
-            cryptoManager = CryptoManager("PiroJOKE")
+        coroutineScope.launch {
+            val dataToSend = withContext(Dispatchers.Default) {
+                if (!::cryptoManager.isInitialized) {
+                    cryptoManager = CryptoManager("PiroJOKE")
+                }
+                val (iv, encrypted) = cryptoManager.encryptData(data)
+                val ivEncData = iv + encrypted
+                val size = ivEncData.size
+                val sizeByteArray = byteArrayOf(
+                    (size and 0xFF).toByte()
+                )
+                Log.d(
+                    TAG,
+                    "Sending message size: $size, " +
+                            "content: ${ivEncData.joinToString(" ") { "%02X".format(it) }}"
+                )
+                sizeByteArray + ivEncData
+            }
+            withContext(Dispatchers.IO) {
+                super.send(dataToSend)
+            }
         }
-        val (iv, encrypted) = cryptoManager.encryptData(data)
-        val ivEncData = iv + encrypted
-        val size = ivEncData.size
-        val sizeByteArray = byteArrayOf(
-            (size and 0xFF).toByte()
-        )
-        val dataToSend = sizeByteArray + ivEncData
-        Log.d(
-            "xxx",
-            "Sending message size: $size, " +
-                    "content: ${ivEncData.joinToString(" ") { "%02X".format(it) }}"
-        )
-        super.send(dataToSend)
     }
 
     override fun close() {
-        collectingJob.cancel()
+        super.close(null)
     }
 
     @AssistedFactory

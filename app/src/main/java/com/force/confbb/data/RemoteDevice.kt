@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RemoteDevice {
     val state: Flow<State>
     val parameters: SnapshotStateMap<Int, DeviceParameter<*>>
+    fun close()
 
     enum class State {
         CONNECTING,

@@ -98,6 +98,11 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         }
     }
 
+    override fun close() {
+        connection.close()
+        _parameters.clear()
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(

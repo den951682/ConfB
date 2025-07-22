@@ -26,8 +26,8 @@ class DeviceViewModel @AssistedInject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         Log.d(TAG, "Clearing ViewModel for device: $deviceAddress")
+        remoteDevice.close()
     }
 
     @AssistedFactory
