@@ -6,5 +6,5 @@ sealed class DeviceConnectionStatus {
     data object Disconnected : DeviceConnectionStatus()
     class Message(val byteArray: ByteArray) : DeviceConnectionStatus()
     class SendMessage(val byteArray: ByteArray) : DeviceConnectionStatus()
-    class DataMessage(data: Any) : DeviceConnectionStatus()
+    class DataMessage(val data: Any) : DeviceConnectionStatus()
 }

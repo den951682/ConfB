@@ -1,37 +1,43 @@
 package com.force.confbb.data
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
+import android.util.Log
 import com.force.confbb.model.DeviceConnectionStatus
+import com.force.confbb.util.TAG
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
 import java.util.UUID
 
-open class BluetoothConnectionManager(
-    private val device: BluetoothDevice
-) : DeviceConnectionRepository {
+open class BluetoothDeviceConnection @AssistedInject constructor(
+    @Assisted private val deviceAddress: String,
+    @Assisted private val scope: CoroutineScope,
+    bluetoothManager: BluetoothManager,
+) : DeviceConnection {
     private val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+    private val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
 
     private var socket: BluetoothSocket? = null
     private var input: InputStream? = null
     private var output: OutputStream? = null
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    private val _data = MutableSharedFlow<DeviceConnectionStatus>(
-        extraBufferCapacity = 64,
+    protected val _data = MutableSharedFlow<DeviceConnectionStatus>(
+        extraBufferCapacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
@@ -42,19 +48,21 @@ open class BluetoothConnectionManager(
         connect()
     }
 
-
     @SuppressLint("MissingPermission")
     private fun connect() {
         scope.launch {
-            try {
-                socket = device.createRfcommSocketToServiceRecord(sppUuid)
-                socket?.connect()
-                input = socket?.inputStream
-                output = socket?.outputStream
-                _data.emit(DeviceConnectionStatus.Connected(device.name ?: "Unknown Device"))
-                listenForIncomingData()
-            } catch (e: Exception) {
-                close(e)
+            withContext(Dispatchers.IO) {
+                try {
+                    socket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
+                    socket?.connect()
+                    Log.d(TAG, "Connected to ${bluetoothDevice.name} at $deviceAddress")
+                    input = socket?.inputStream
+                    output = socket?.outputStream
+                    _data.emit(DeviceConnectionStatus.Connected(bluetoothDevice.name ?: "Unknown Device"))
+                    listenForIncomingData()
+                } catch (e: Exception) {
+                    close(e)
+                }
             }
         }
     }
@@ -74,19 +82,24 @@ open class BluetoothConnectionManager(
 
     override fun send(data: ByteArray) {
         scope.launch {
-            try {
-                output?.write(data)
-                output?.flush()
-                _data.emit(DeviceConnectionStatus.SendMessage(data))
-            } catch (e: Exception) {
-                close(e)
+            withContext(Dispatchers.IO) {
+                try {
+                    output?.write(data)
+                    output?.flush()
+                    _data.emit(DeviceConnectionStatus.SendMessage(data))
+                } catch (e: Exception) {
+                    close(e)
+                }
             }
         }
     }
 
     private fun listenForIncomingData() {
         scope.launch {
-            listenInputStream(input!!, { isActive })
+            withContext(Dispatchers.IO) {
+                listenInputStream(input!!, { isActive })
+            }
+            Log.e(TAG, "Listening for incoming data on $deviceAddress ended")
         }
     }
 
@@ -102,5 +115,11 @@ open class BluetoothConnectionManager(
         } else {
             scope.launch { _data.emit(DeviceConnectionStatus.Disconnected) }
         }
+        Log.d(TAG, "Connection to $deviceAddress closed, exception: $exception")
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(deviceAddress: String, scope: CoroutineScope): BluetoothDeviceConnection
     }
 }

@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import com.force.confbb.feature.device.deviceSection
-import com.force.confbb.feature.device.navigateToConnectDevice
 import com.force.confbb.feature.device.navigateToDevice
 import com.force.confbb.feature.devices.Devices
 import com.force.confbb.feature.devices.DevicesRoute
@@ -16,7 +15,6 @@ import com.force.confbb.feature.scan.ScanRoute
 import com.force.confbb.feature.scan.navigateToScan
 import com.force.confbb.feature.terminal.navigateToTerminal
 import com.force.confbb.feature.terminal.terminalSection
-import kotlinx.coroutines.delay
 
 @Composable
 fun ConfNavHost(
@@ -34,7 +32,6 @@ fun ConfNavHost(
             )
         }
         deviceSection(
-            onConnected = { navController.navigateToDevice(it) },
             onError = {
                 onShowSnackbar(
                     it?.message ?: "An error occurred",
@@ -43,7 +40,6 @@ fun ConfNavHost(
                 )
                 navController.popBackStack()
             },
-            parentEntry = { navController.getBackStackEntry<Any>(it) }
         )
         terminalSection(
             onDeviceClick = navController::navigateToTerminal
@@ -56,7 +52,7 @@ fun ConfNavHost(
                 onDismiss = navController::popBackStack,
                 onDeviceClick = { id ->
                     navController.popBackStack()
-                    navController.navigateToConnectDevice(id)
+                    navController.navigateToDevice(id)
                 },
             )
         }

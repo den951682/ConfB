@@ -2,7 +2,7 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.BluetoothDeviceConnectionRepository
+import com.force.confbb.data.BluetoothDeviceConnection
 import com.force.confbb.model.DeviceConnectionStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -15,10 +15,10 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = TerminalViewModel.Factory::class)
 class TerminalViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
-    factory: BluetoothDeviceConnectionRepository.Factory
+    factory: BluetoothDeviceConnection.Factory
 ) : ViewModel() {
 
-    private val connectionRepository = factory.create(deviceAddress)
+    private val connectionRepository = factory.create(deviceAddress, viewModelScope)
 
     private val _items = MutableStateFlow<List<DeviceConnectionStatus>>(emptyList())
     val items: StateFlow<List<DeviceConnectionStatus>> = _items
