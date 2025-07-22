@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothManager
 import android.util.Log
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.confb.pmodel.HandshakeResponse
+import com.force.confb.pmodel.ParameterInfo
 import com.force.confbb.di.ApplicationScope
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import java.io.InputStream
+import java.nio.charset.Charset
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
 class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
@@ -74,11 +76,17 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
                         val dataToParse = data.drop(1).toByteArray()
                         val proto = when (dataType) {
                             is DataType.HandshakeResponse -> HandshakeResponse.parseFrom(dataToParse)
+                            is DataType.ParameterInfo -> ParameterInfo.parseFrom(dataToParse).let {
+                                Log.d("xxx", it.id.toString())
+                                Log.d("xxx", it.name.toString(Charset.forName("UTF-8")))
+                                Log.d("xxx", it.description.toString(Charset.forName("UTF-8")))
+                            }
                             else -> {
                                 Log.d("xxx", "Unhandled received data type: ${data[0]}")
                                 Unit
                             }
                         }
+                        Log.d("xxx", "Received data type: $dataType, content: $proto")
                         _cipherStatusDate.emit(DeviceConnectionStatus.DataMessage(proto))
                     }
                 }
@@ -91,7 +99,7 @@ class CipherBluetoothDeviceConnectionRepository @AssistedInject constructor(
 
     override fun send(data: ByteArray) {
         if (!::cryptoManager.isInitialized) {
-            cryptoManager = CryptoManager("PiroJOKE1")
+            cryptoManager = CryptoManager("PiroJOKE")
         }
         val (iv, encrypted) = cryptoManager.encryptData(data)
         val ivEncData = iv + encrypted

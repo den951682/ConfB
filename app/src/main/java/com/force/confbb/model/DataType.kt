@@ -8,12 +8,14 @@ package com.force.confbb.model
 sealed class DataType {
     data object HandshakeRequest : DataType()
     data object HandshakeResponse : DataType()
+    data object ParameterInfo : DataType()
 
     companion object {
         fun fromCode(code: Byte): DataType {
             return when (code.toInt()) {
                 0x00 -> HandshakeRequest
                 0x01 -> HandshakeResponse
+                0x02 -> ParameterInfo
                 else -> throw IllegalArgumentException("Unknown DataType byte: $code")
             }
         }
