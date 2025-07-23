@@ -15,11 +15,12 @@ class DeviceViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
     factory: BluetoothRemoteDevice.Factory
 ) : ViewModel() {
+
+    val remoteDevice = factory.create(deviceAddress, viewModelScope)
+
     init {
         Log.d(TAG, "Creating ViewModel for device: $deviceAddress $this")
     }
-
-    val remoteDevice = factory.create(deviceAddress, viewModelScope)
 
     fun send(text: String) {
 
@@ -28,6 +29,13 @@ class DeviceViewModel @AssistedInject constructor(
     override fun onCleared() {
         Log.d(TAG, "Clearing ViewModel for device: $deviceAddress")
         remoteDevice.close()
+    }
+
+    fun <T> onValueChanged(
+        parameterId: Int,
+        value: T
+    ) {
+        remoteDevice.setParameterValue(parameterId, value)
     }
 
     @AssistedFactory

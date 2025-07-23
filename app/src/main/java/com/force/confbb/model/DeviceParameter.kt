@@ -7,5 +7,6 @@ data class DeviceParameter<Type>(
     val description: String? = null,
     val minValue: Type? = null,
     val maxValue: Type? = null,
-    val editable: Boolean = false
+    val editable: Boolean = false,
+    val changeRequestSend: Boolean = false
 )

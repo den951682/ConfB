@@ -9,10 +9,11 @@ package com.force.confbb.model
 #define ERROR_ENCODE                    0x06
  */
 
-sealed class ConfError(message: String) : Exception(message) {
-    class CifferTextTooShortError : ConfError("Шифртекст закоротоки")
+//todo chek what error is critical (when can exchange with messages)
+sealed class ConfError(message: String, val isCritical: Boolean = true) : Exception(message) {
+    class CifferTextTooShortError : ConfError("Шифртекст закоротокий")
     class DecryptError : ConfError("Помилка розшифровки, можливо, не сходяться пассфрази")
-    class NotSupportedError : ConfError("Операція не підтримується")
+    class NotSupportedError : ConfError("Операція не підтримується", false)
     class ProtoDecodeError : ConfError("Помилка декодування протоколу, можливо, не сходяться версії")
     class ProtoEncodeError : ConfError("Помилка кодування протоколу")
     class EncodeError : ConfError("Помилка зашифрування")

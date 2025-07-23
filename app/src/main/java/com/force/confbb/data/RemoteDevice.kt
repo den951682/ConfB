@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RemoteDevice {
     val state: Flow<State>
     val parameters: SnapshotStateMap<Int, DeviceParameter<*>>
+    fun <T> setParameterValue(id: Int, value: T)
     fun close()
 
     sealed class State {

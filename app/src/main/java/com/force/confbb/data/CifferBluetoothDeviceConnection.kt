@@ -2,10 +2,13 @@ package com.force.confbb.data
 
 import android.bluetooth.BluetoothManager
 import android.util.Log
-import com.force.confb.pmodel.Disconnect
+import com.force.confb.pmodel.BooleanParameter
+import com.force.confb.pmodel.FloatParameter
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.confb.pmodel.HandshakeResponse
+import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.ParameterInfo
+import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
@@ -57,7 +60,13 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                 if (input.available() > 0) {
                     input.read().let { b ->
                         if (b < 28) {
-                            throw ConfError.fromCode(b)
+                            val error = ConfError.fromCode(b)
+                            if (error.isCritical) {
+                                throw error
+                            } else {
+                                Log.e(TAG, "Received error code: $b, message: ${error.message}")
+                                _data.emit(DeviceConnectionStatus.Error(error))
+                            }
                         } else {
                             Log.d(TAG, "Frame size: $b")
                             val message = ByteArray(b)
@@ -83,9 +92,14 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                                     Log.d("xxx", it.description.toString(Charset.forName("UTF-8")))
                                 }
 
+                                is DataType.TypeInt -> IntParameter.parseFrom(dataToParse)
+                                is DataType.TypeFloat -> FloatParameter.parseFrom(dataToParse)
+                                is DataType.TypeString -> StringParameter.parseFrom(dataToParse)
+                                is DataType.TypeBoolean -> BooleanParameter.parseFrom(dataToParse)
+
                                 else -> {
                                     Log.d(TAG, "Unhandled received data type: ${data[0]}")
-                                    Unit
+                                    _data.emit(DeviceConnectionStatus.Error(ConfError.NotSupportedError()))
                                 }
                             }
                             Log.d(TAG, "Received data type: $dataType, content: $proto")

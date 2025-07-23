@@ -25,7 +25,7 @@ fun NavController.navigateToDevice(id: String, navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.deviceSection(
     onBack: () -> Unit,
-    onError: suspend (Throwable?) -> Unit,
+    onError: suspend (Throwable?, Boolean) -> Unit,
 ) {
     navigation<DeviceSectionRoute>(
         startDestination = DeviceRoute(""),

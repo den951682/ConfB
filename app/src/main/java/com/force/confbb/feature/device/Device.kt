@@ -1,9 +1,11 @@
 package com.force.confbb.feature.device
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,12 +38,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.data.RemoteDevice
 import com.force.confbb.designsystem.LoadingWheel
+import com.force.confbb.designsystem.NumValueSelector
+import com.force.confbb.model.ConfError
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Device(
     id: String,
-    onError: suspend (Throwable?) -> Unit,
+    onError: suspend (Throwable?, Boolean) -> Unit,
     onBack: () -> Unit,
     viewModel: DeviceViewModel = hiltViewModel()
 ) {
@@ -52,7 +57,8 @@ fun Device(
 
     LaunchedEffect(error) {
         if (error) {
-            kotlin.runCatching { onError((state as? RemoteDevice.State.Error)?.error) }
+            val e = (state as? RemoteDevice.State.Error)?.error
+            runCatching { onError(e, (e as? ConfError)?.isCritical == true) }
         }
     }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -81,10 +87,36 @@ fun Device(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(entry.value.name ?: "", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(entry.value.description ?: "", style = MaterialTheme.typography.bodyMedium)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(entry.value.name ?: "", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(entry.value.description ?: "", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        if (entry.value.editable) {
+                            Box(modifier = Modifier.wrapContentSize()) {
+                                Spacer(modifier = Modifier.size(32.dp))
+                                this@Row.AnimatedVisibility(entry.value.changeRequestSend) {
+                                    LoadingWheel(modifier = Modifier.size(32.dp))
+                                }
+                            }
+                            if (entry.value.value is Int) {
+                                NumValueSelector(
+                                    value = entry.value.value as Int,
+                                    onValueChange = { viewModel.onValueChanged(entry.key, it) },
+                                    modifier = Modifier.wrapContentSize(),
+                                    range = IntRange(
+                                        (entry.value.minValue as? Int ?: Int.MIN_VALUE),
+                                        (entry.value.maxValue as? Int ?: Int.MAX_VALUE)
+                                    ),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -95,6 +127,7 @@ fun Device(
             modifier = Modifier.fillMaxSize()
         ) {
             LoadingWheel(
+
                 modifier = Modifier
                     .size(60.dp)
                     .fillMaxWidth()
