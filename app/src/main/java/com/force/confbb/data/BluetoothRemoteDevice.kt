@@ -3,12 +3,15 @@ package com.force.confbb.data
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.force.confb.pmodel.BooleanParameter
+import com.force.confb.pmodel.FloatParameter
 import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confb.pmodel.SetBooleanParameter
 import com.force.confb.pmodel.SetFloatParameter
 import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
+import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
 import com.force.confbb.model.DeviceParameter
@@ -29,6 +32,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.nio.charset.Charset
+import kotlin.reflect.KClass
 
 
 class BluetoothRemoteDevice @AssistedInject constructor(
@@ -64,12 +69,14 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         scope.launch(Dispatchers.IO) {
             connection.data
                 .filterIsInstance<DeviceConnectionStatus.DataMessage>()
-                .mapNotNull { it.data as? IntParameter }
+                .mapNotNull { it.data }
                 .collect { parameter ->
-                    debounceJobs.remove(parameter.id)
-                    _parameters[parameter.id] = (_parameters[parameter.id] as? DeviceParameter<Int>)
-                        ?.copy(value = parameter.value, changeRequestSend = false)
-                        ?: DeviceParameter(parameter.id, value = parameter.value)
+                    val handler = converters[parameter::class]
+                    if (handler != null) {
+                        handler(parameter)
+                    } else {
+                        Log.d(TAG, "Unsupported parameter type: ${parameter::class}")
+                    }
                 }
         }
         scope.launch(Dispatchers.IO) {
@@ -157,6 +164,39 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         connection.close()
         _parameters.clear()
     }
+
+    private val converters: Map<KClass<*>, suspend (Any) -> Unit> = mapOf(
+        IntParameter::class to { param ->
+            val p = param as IntParameter
+            debounceJobs.remove(p.id)
+            _parameters[p.id] = (_parameters[p.id] as? DeviceParameter<Int>)
+                ?.copy(value = p.value, changeRequestSend = false)
+                ?: DeviceParameter(p.id, value = p.value)
+        },
+        FloatParameter::class to { param ->
+            val p = param as FloatParameter
+            debounceJobs.remove(p.id)
+            _parameters[p.id] = (_parameters[p.id] as? DeviceParameter<Float>)
+                ?.copy(value = p.value, changeRequestSend = false)
+                ?: DeviceParameter(p.id, value = p.value)
+        },
+        BooleanParameter::class to { param ->
+            val p = param as BooleanParameter
+            debounceJobs.remove(p.id)
+            _parameters[p.id] = (_parameters[p.id] as? DeviceParameter<Boolean>)
+                ?.copy(value = p.value, changeRequestSend = false)
+                ?: DeviceParameter(p.id, value = p.value)
+        },
+        StringParameter::class to { param ->
+            val p = param as StringParameter
+            val value = p.value.toString(Charset.forName("UTF-8"))
+            debounceJobs.remove(p.id)
+            _parameters[p.id] = (_parameters[p.id] as? DeviceParameter<String>)
+                ?.copy(value = value, changeRequestSend = false)
+                ?: DeviceParameter(p.id, value = value)
+        }
+    )
+
 
     @AssistedFactory
     interface Factory {

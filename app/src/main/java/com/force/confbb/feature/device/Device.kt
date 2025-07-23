@@ -1,5 +1,6 @@
 package com.force.confbb.feature.device
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,7 +35,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.data.RemoteDevice
@@ -85,7 +90,12 @@ fun Device(
             items(parameterList.value) { entry ->
                 Card(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    colors = if (entry.value.editable) {
+                        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                    } else {
+                        CardDefaults.cardColors(containerColor = Color.Transparent)
+                    }
                 ) {
                     Row(
                         modifier = Modifier
@@ -116,6 +126,12 @@ fun Device(
                                     ),
                                 )
                             }
+                        } else {
+                            Text(
+                                text = entry.value.value.formatValue(),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
                     }
                 }
@@ -135,5 +151,16 @@ fun Device(
                     .align(Alignment.Center)
             )
         }
+    }
+}
+
+@SuppressLint("DefaultLocale")
+private fun Any?.formatValue(): String {
+    return when (this) {
+        is Int -> toString()
+        is Float -> String.format("%.2f", this)
+        is String -> this
+        is Boolean -> if (this) "Увімкнено" else "Вимкнено"
+        else -> this?.toString() ?: "N/A"
     }
 }
