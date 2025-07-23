@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -26,6 +27,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -107,24 +111,81 @@ fun Device(
                             Text(entry.value.name ?: "", style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(entry.value.description ?: "", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        if (entry.value.editable) {
-                            Box(modifier = Modifier.wrapContentSize()) {
-                                Spacer(modifier = Modifier.size(32.dp))
-                                this@Row.AnimatedVisibility(entry.value.changeRequestSend) {
-                                    LoadingWheel(modifier = Modifier.size(32.dp))
+                            if (entry.value.editable && entry.value.value is String) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                ) {
+                                    OutlinedTextField(
+                                        value = entry.value.value.toString().take(15),
+                                        onValueChange = { newText ->
+                                            val trimmed = newText.trim().take(15)
+                                            if (trimmed.length >= 2) {
+                                                viewModel.onValueChanged(entry.key, trimmed)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(48.dp)
+                                            .padding(vertical = 0.dp),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(8.dp),
+                                        textStyle = MaterialTheme.typography.bodyLarge,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                        )
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .wrapContentSize()
+                                            .align(Alignment.CenterStart)
+                                    ) {
+                                        this@Row.AnimatedVisibility(entry.value.changeRequestSend) {
+                                            LoadingWheel(modifier = Modifier.size(32.dp))
+                                        }
+                                    }
                                 }
                             }
-                            if (entry.value.value is Int) {
-                                NumValueSelector(
-                                    value = entry.value.value as Int,
-                                    onValueChange = { viewModel.onValueChanged(entry.key, it) },
-                                    modifier = Modifier.wrapContentSize(),
-                                    range = IntRange(
-                                        (entry.value.minValue as? Int ?: Int.MIN_VALUE),
-                                        (entry.value.maxValue as? Int ?: Int.MAX_VALUE)
-                                    ),
-                                )
+                        }
+                        if (entry.value.editable) {
+                            if (entry.value.value !is String) {
+                                Box(modifier = Modifier.wrapContentSize()) {
+                                    Spacer(modifier = Modifier.size(32.dp))
+                                    this@Row.AnimatedVisibility(entry.value.changeRequestSend) {
+                                        LoadingWheel(modifier = Modifier.size(32.dp))
+                                    }
+                                }
+                                if (entry.value.value is Int) {
+                                    NumValueSelector(
+                                        value = entry.value.value as Int,
+                                        onValueChange = { viewModel.onValueChanged(entry.key, it) },
+                                        modifier = Modifier.wrapContentSize(),
+                                        range =
+                                            ((entry.value.minValue as? Int)?.toFloat() ?: Float.NEGATIVE_INFINITY)..
+                                                    ((entry.value.maxValue as? Int)?.toFloat()
+                                                        ?: Float.POSITIVE_INFINITY)
+                                    )
+                                }
+                                if (entry.value.value is Float) {
+                                    NumValueSelector(
+                                        value = entry.value.value as Float,
+                                        onValueChange = { viewModel.onValueChanged(entry.key, it) },
+                                        modifier = Modifier.wrapContentSize(),
+                                        step = 0.05,
+                                        decimalPlaces = 2,
+                                        range =
+                                            (entry.value.minValue as? Float ?: Float.NEGATIVE_INFINITY)..
+                                                    ((entry.value.maxValue as? Float) ?: Float.POSITIVE_INFINITY)
+                                    )
+                                }
+                                if (entry.value.value is Boolean) {
+                                    Switch(
+                                        checked = entry.value.value as? Boolean == true,
+                                        onCheckedChange = { viewModel.onValueChanged(entry.key, it) }
+                                    )
+                                }
                             }
                         } else {
                             Text(
