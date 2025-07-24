@@ -6,6 +6,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.force.confb.pmodel.BooleanParameter
 import com.force.confb.pmodel.FloatParameter
 import com.force.confb.pmodel.IntParameter
+import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confb.pmodel.SetBooleanParameter
 import com.force.confb.pmodel.SetFloatParameter
@@ -23,7 +24,10 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
@@ -48,6 +52,12 @@ class BluetoothRemoteDevice @AssistedInject constructor(
 
     private val _parameters = mutableStateMapOf<Int, DeviceParameter<*>>()
 
+    private val _events = MutableSharedFlow<RemoteDevice.Event>(
+        replay = 0,
+        extraBufferCapacity = 32,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
     override val state: StateFlow<RemoteDevice.State> = connection.data.map {
         when (it) {
             is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
@@ -62,6 +72,8 @@ class BluetoothRemoteDevice @AssistedInject constructor(
     )
 
     override val parameters: SnapshotStateMap<Int, DeviceParameter<*>> = _parameters
+
+    override val events: SharedFlow<RemoteDevice.Event> = _events
 
     private val debounceJobs = mutableMapOf<Int, Job>()
 
@@ -133,6 +145,18 @@ class BluetoothRemoteDevice @AssistedInject constructor(
                     }
                 }
         }
+        scope.launch(Dispatchers.IO) {
+            connection.data.collect{
+                if(it is DeviceConnectionStatus.DataMessage) {
+                    (it.data as? Message)?.let {
+                        _events.emit(object : RemoteDevice.Event {
+                            override val id: Int = it.id
+                            override val obj: Any = it
+                        })
+                    }
+                }
+            }
+        }
     }
 
     override fun <T> setParameterValue(id: Int, value: T) {
@@ -153,7 +177,7 @@ class BluetoothRemoteDevice @AssistedInject constructor(
 
         debounceJobs[id]?.cancel()
         debounceJobs[id] = scope.launch {
-            delay(1500)
+            delay(if (value is String) 3000 else 1000)
             Log.d(TAG, "Value sent for parameter $id: $value")
             connection.send(byteArrayOf(type.code) + request.toByteArray())
             debounceJobs.remove(id)

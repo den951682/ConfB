@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RemoteDevice {
     val state: Flow<State>
     val parameters: SnapshotStateMap<Int, DeviceParameter<*>>
+    val events: Flow<Event>
     fun <T> setParameterValue(id: Int, value: T)
     fun close()
 
@@ -15,5 +16,10 @@ interface RemoteDevice {
         data object Connected : State()
         data object Disconnected : State()
         data class Error(val error: Throwable) : State()
+    }
+
+    interface Event {
+        val id: Int
+        val obj: Any
     }
 }

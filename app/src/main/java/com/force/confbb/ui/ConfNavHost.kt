@@ -33,6 +33,17 @@ fun ConfNavHost(
         }
         deviceSection(
             onBack = navController::popBackStack,
+            onMessage = { message, indefinite ->
+                onShowSnackbar(
+                    message,
+                    null,
+                    if (indefinite) {
+                        SnackbarDuration.Indefinite
+                    } else {
+                        SnackbarDuration.Short
+                    }
+                )
+            },
             onError = { error, isCritical ->
                 onShowSnackbar(
                     error?.message ?: "Щось не так",

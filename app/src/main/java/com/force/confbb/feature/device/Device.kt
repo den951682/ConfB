@@ -2,6 +2,7 @@ package com.force.confbb.feature.device
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.force.confb.pmodel.Message
 import com.force.confbb.data.RemoteDevice
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.designsystem.NumValueSelector
@@ -54,6 +56,7 @@ import com.force.confbb.model.ConfError
 @Composable
 fun Device(
     id: String,
+    onMessage: suspend (String, Boolean) -> Unit,
     onError: suspend (Throwable?, Boolean) -> Unit,
     onBack: () -> Unit,
     viewModel: DeviceViewModel = hiltViewModel()
@@ -64,6 +67,15 @@ fun Device(
     val error = state is RemoteDevice.State.Error
     val connected = state is RemoteDevice.State.Connected
 
+    LaunchedEffect(Unit) {
+        viewModel.remoteDevice.events.collect { event ->
+            when (event.obj) {
+                is Message -> {
+                    onMessage((event.obj as Message).text.toStringUtf8(), false)
+                }
+            }
+        }
+    }
     LaunchedEffect(error) {
         if (error) {
             val e = (state as? RemoteDevice.State.Error)?.error
@@ -121,9 +133,7 @@ fun Device(
                                         value = entry.value.value.toString().take(15),
                                         onValueChange = { newText ->
                                             val trimmed = newText.trim().take(15)
-                                            if (trimmed.length >= 2) {
-                                                viewModel.onValueChanged(entry.key, trimmed)
-                                            }
+                                            viewModel.onValueChanged(entry.key, trimmed)
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -189,6 +199,7 @@ fun Device(
                             }
                         } else {
                             Text(
+                                modifier = Modifier.padding(start = 8.dp),
                                 text = entry.value.value.formatValue(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium

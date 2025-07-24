@@ -7,6 +7,7 @@ import com.force.confb.pmodel.FloatParameter
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.confb.pmodel.HandshakeResponse
 import com.force.confb.pmodel.IntParameter
+import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.ConfError
@@ -86,16 +87,12 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                             val dataToParse = data.drop(1).toByteArray()
                             val proto = when (dataType) {
                                 is DataType.HandshakeResponse -> HandshakeResponse.parseFrom(dataToParse)
-                                is DataType.ParameterInfo -> ParameterInfo.parseFrom(dataToParse).also {
-                                    Log.d("xxx", it.id.toString())
-                                    Log.d("xxx", it.name.toString(Charset.forName("UTF-8")))
-                                    Log.d("xxx", it.description.toString(Charset.forName("UTF-8")))
-                                }
-
+                                is DataType.ParameterInfo -> ParameterInfo.parseFrom(dataToParse)
                                 is DataType.TypeInt -> IntParameter.parseFrom(dataToParse)
                                 is DataType.TypeFloat -> FloatParameter.parseFrom(dataToParse)
                                 is DataType.TypeString -> StringParameter.parseFrom(dataToParse)
                                 is DataType.TypeBoolean -> BooleanParameter.parseFrom(dataToParse)
+                                is DataType.TypeMessage -> Message.parseFrom(dataToParse)
 
                                 else -> {
                                     Log.d(TAG, "Unhandled received data type: ${data[0]}")

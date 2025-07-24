@@ -15,6 +15,7 @@ import com.force.confb.pmodel.Disconnect
         #define TYPE_FLOAT                      0x09
         #define TYPE_STRING                     0x10
         #define TYPE_BOOLEAN                    0x11
+        #define TYPE_MESSAGE                    0x12
 */
 
 sealed class DataType(val code: Byte) {
@@ -30,6 +31,7 @@ sealed class DataType(val code: Byte) {
     data object TypeFloat : DataType(9)
     data object TypeString : DataType(10)
     data object TypeBoolean : DataType(11)
+    data object TypeMessage : DataType(12)
 
     companion object {
         fun fromCode(code: Byte): DataType {
@@ -46,6 +48,7 @@ sealed class DataType(val code: Byte) {
                 0x09 -> TypeFloat
                 0x10 -> TypeString
                 0x11 -> TypeBoolean
+                0x12 -> TypeMessage
                 else -> throw IllegalArgumentException("Unknown DataType byte: $code")
             }
         }
