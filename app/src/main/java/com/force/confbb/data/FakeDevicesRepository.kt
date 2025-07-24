@@ -30,14 +30,14 @@ class FakeDevicesRepository @Inject constructor(
             _devices.value = emptyList()
             delay(1000)
             _devices.value = listOf(
-                Device("Device 1", "a1"),
+                Device("Device 1", "a1", true),
             )
             delay(2500)
             if (random.nextBoolean()) {
                 _devices.value = listOf(
-                    Device("Device 1", "a1"),
-                    Device("Device 2", "a2"), Device("Device 3", "a3"),
-                    Device("Device 4", "a4"), Device("Device 5", "a5")
+                    Device("Device 1", "a1", true),
+                    Device("Device 2", "a2", true), Device("Device 3", "a3", true),
+                    Device("Device 4", "a4", true), Device("Device 5", "a5", true)
                 )
                 _status.value = ScanDevicesStatus.SUCCESS
             } else {

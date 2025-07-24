@@ -19,6 +19,7 @@ accompanist-permissions = "0.37.3"
 protobuf = "0.9.5"
 protobuf_jl = "4.31.1"
 annotation = "1.7.1"
+room = "2.7.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,6 +52,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist-permissions" }
 android-protobuf = { group = "com.google.protobuf", name ="protobuf-javalite", version.ref = "protobuf-jl" }
 androidx-anotations = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+androidx-room = {group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = {group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

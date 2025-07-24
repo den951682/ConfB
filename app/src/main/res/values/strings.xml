@@ -3,8 +3,10 @@
     <string name="app_name">ConfBB</string>
     <string name="available_devices">Доступні пристрої</string>
     <string name="cancel">Відміна</string>
+    <string name="change_passphrase">Змінити Pass-фразу</string>
     <string name="connected">Підключено: %1$s</string>
     <string name="connecting">Підключення</string>
+    <string name="delete">Видалити</string>
     <string name="empty_search">Нічого не знайдено</string>
     <string name="enable_bt_action">Вімкнути</string>
     <string name="enable_bt_hint">Щоб підключитись до пристрою, увімкни Bluetooth</string>

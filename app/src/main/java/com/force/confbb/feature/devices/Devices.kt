@@ -7,11 +7,16 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -33,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
@@ -73,7 +79,11 @@ fun Devices(
     var requestPermission by remember { mutableStateOf(false) }
     val enabledState by viewModel.isBluetoothEnabled.collectAsStateWithLifecycle()
     val startForResult = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
-    val devices by viewModel.devices.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val devices by viewModel.devices.collectAsStateWithLifecycle(
+        initialValue = emptyList(),
+        lifecycle = lifecycleOwner.lifecycle
+    )
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -151,7 +161,9 @@ fun Devices(
                         Icon(
                             painter = painterResource(id = R.drawable.no_devices),
                             contentDescription = null,
-                            modifier = Modifier.size(172.dp).align(Alignment.CenterHorizontally),
+                            modifier = Modifier
+                                .size(172.dp)
+                                .align(Alignment.CenterHorizontally),
                             tint = Color.Gray.copy(alpha = 0.5f)
                         )
                         Text(
@@ -159,6 +171,24 @@ fun Devices(
                             textAlign = TextAlign.Center,
                         )
                     }
+                }
+            }
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 160.dp),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(devices) { device ->
+                    DeviceCard(
+                        device = device,
+                        onMenuClick = { deviceEntity, action ->
+                            when (action) {
+                                "passphrase" -> viewModel.onChangePassphrase(deviceEntity)
+                                "delete" -> viewModel.onDeleteDevice(deviceEntity)
+                            }
+                        },
+                    )
                 }
             }
         }

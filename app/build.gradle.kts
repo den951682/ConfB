@@ -88,6 +88,10 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.android.protobuf)
     implementation(libs.androidx.anotations)
+    implementation(libs.androidx.room) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.androidx.room.ktx)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
