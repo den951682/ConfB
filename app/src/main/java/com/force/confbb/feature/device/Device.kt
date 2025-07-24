@@ -132,7 +132,7 @@ fun Device(
                                     OutlinedTextField(
                                         value = entry.value.value.toString().take(15),
                                         onValueChange = { newText ->
-                                            val trimmed = newText.trim().take(15)
+                                            val trimmed = newText.take(15)
                                             viewModel.onValueChanged(entry.key, trimmed)
                                         },
                                         modifier = Modifier

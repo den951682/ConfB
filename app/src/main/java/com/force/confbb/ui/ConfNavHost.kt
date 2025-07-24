@@ -29,6 +29,7 @@ fun ConfNavHost(
             Devices(
                 onShowSnackbar = onShowSnackbar,
                 onAddDeviceClick = navController::navigateToScan,
+                onDeviceClick = { navController.navigateToDevice(it) }
             )
         }
         deviceSection(

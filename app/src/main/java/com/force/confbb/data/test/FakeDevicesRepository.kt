@@ -1,5 +1,6 @@
-package com.force.confbb.data
+package com.force.confbb.data.test
 
+import com.force.confbb.data.DevicesRepository
 import com.force.confbb.di.ApplicationScope
 import com.force.confbb.model.Device
 import com.force.confbb.model.ScanDevicesStatus
@@ -10,8 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.random.Random
 
+@Singleton
 class FakeDevicesRepository @Inject constructor(
     @ApplicationScope
     private val scope: CoroutineScope
@@ -30,14 +33,14 @@ class FakeDevicesRepository @Inject constructor(
             _devices.value = emptyList()
             delay(1000)
             _devices.value = listOf(
-                Device("Device 1", "a1", true),
+                Device("Device 1", "a1", "", 0),
             )
             delay(2500)
             if (random.nextBoolean()) {
                 _devices.value = listOf(
-                    Device("Device 1", "a1", true),
-                    Device("Device 2", "a2", true), Device("Device 3", "a3", true),
-                    Device("Device 4", "a4", true), Device("Device 5", "a5", true)
+                    Device("Device 1", "a1", "", 0),
+                    Device("Device 2", "a2", "", 0), Device("Device 3", "a3", "", 0),
+                    Device("Device 4", "a4", "", 0), Device("Device 5", "a5", "", 0)
                 )
                 _status.value = ScanDevicesStatus.SUCCESS
             } else {

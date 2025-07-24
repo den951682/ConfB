@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 
 interface DeviceConnection {
+    val credentials: Pair<String, String>
     val data: Flow<DeviceConnectionStatus>
     suspend fun listenInputStream(input: InputStream, isActive: () -> Boolean)
     fun send(data: ByteArray)

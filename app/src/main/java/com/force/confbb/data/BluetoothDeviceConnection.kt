@@ -1,9 +1,11 @@
 package com.force.confbb.data
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import com.force.confbb.model.DeviceConnectionStatus
 import com.force.confbb.util.TAG
 import dagger.assisted.Assisted
@@ -40,6 +42,10 @@ open class BluetoothDeviceConnection @AssistedInject constructor(
         extraBufferCapacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+
+    override val credentials: Pair<String, String>
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+        get() = bluetoothDevice.name to bluetoothDevice.address
 
     override val data: SharedFlow<DeviceConnectionStatus> = _data.asSharedFlow()
 

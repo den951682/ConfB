@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,14 +45,16 @@ import com.force.confbb.model.Device
 
 @Composable
 fun DeviceCard(
-    device: Device,
-    onMenuClick: (Device, String) -> Unit
+    device: Pair<Device, Boolean>,
+    onMenuClick: (Device, String) -> Unit,
+    onClick: (Device) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .width(180.dp)
+            .clickable { onClick(device.first) }
             .aspectRatio(4f / 3f)
     ) {
         Box(
@@ -67,7 +70,7 @@ fun DeviceCard(
             )
 
             Text(
-                text = device.name,
+                text = device.first.name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -91,21 +94,21 @@ fun DeviceCard(
                         text = { Text(stringResource(R.string.change_passphrase)) },
                         onClick = {
                             menuExpanded = false
-                            onMenuClick(device, "passphrase")
+                            onMenuClick(device.first, "passphrase")
                         }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete)) },
                         onClick = {
                             menuExpanded = false
-                            onMenuClick(device, "delete")
+                            onMenuClick(device.first, "delete")
                         }
                     )
                 }
             }
 
 
-            val color = if (device.isAvailable) Color.Green else Color.Gray
+            val color = if (device.second) Color.Green else Color.Gray
             val infiniteTransition = rememberInfiniteTransition(label = "pulse")
             val scale by infiniteTransition.animateFloat(
                 initialValue = 1f,
@@ -122,7 +125,7 @@ fun DeviceCard(
                     .align(Alignment.BottomEnd)
                     .padding(12.dp)
                     .size(10.dp)
-                    .scale(if (device.isAvailable) scale else 1f)
+                    .scale(if (device.second) scale else 1f)
                     .background(color = color, shape = CircleShape)
             )
         }

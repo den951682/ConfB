@@ -6,8 +6,10 @@ import com.force.confbb.data.DevicesRepository
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.model.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,12 +24,23 @@ class DevicesViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         false
     )
+    private val tickerFlow = flow {
+        while (true) {
+            emit(System.currentTimeMillis())
+            devicesRepository.startScan()
+            delay(10000)
+            emit(System.currentTimeMillis())
+            delay(60000)
+        }
+    }
 
-    val devices = savedDevicesRepository.devices
+    val devices = savedDevicesRepository.devices.combine(tickerFlow) { savedDevices, current ->
+        savedDevices.map { it to (it.lastSeen > current - 70000) }
+    }
 
     fun onDeleteDevice(device: Device) {
         viewModelScope.launch {
-            savedDevicesRepository.deleteDevice(device)
+            savedDevicesRepository.deleteDevice(device.address)
         }
     }
 

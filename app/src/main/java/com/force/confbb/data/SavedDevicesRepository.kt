@@ -5,6 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface SavedDevicesRepository {
     val devices: Flow<List<Device>>
+    suspend fun addDevice(device: Device)
     suspend fun changePassphrase(device: Device, newPassphrase: String)
-    suspend fun deleteDevice(device: Device)
+    suspend fun setLastSeen(id: String, lastSeen: Long)
+    suspend fun setName(id: String, name: String)
+    suspend fun deleteDevice(id: String)
 }

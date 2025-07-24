@@ -3,12 +3,13 @@ package com.force.confbb.di
 import android.content.Context
 import androidx.room.Room
 import com.force.confbb.db.ConfDatabase
+import com.force.confbb.db.DevicesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -19,4 +20,8 @@ object DbModule {
         return Room.databaseBuilder(context, ConfDatabase::class.java, "db")
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideDevicesDao(db: ConfDatabase): DevicesDao = db.devicesDao()
 }

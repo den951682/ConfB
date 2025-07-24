@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.force.confb.pmodel.BooleanParameter
 import com.force.confb.pmodel.FloatParameter
+import com.force.confb.pmodel.HandshakeResponse
 import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
@@ -14,8 +15,10 @@ import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
 import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.DataType
+import com.force.confbb.model.Device
 import com.force.confbb.model.DeviceConnectionStatus
 import com.force.confbb.model.DeviceParameter
+import com.force.confbb.util.PASS_PHRASE
 import com.force.confbb.util.TAG
 import com.google.protobuf.ByteString
 import dagger.assisted.Assisted
@@ -43,7 +46,8 @@ import kotlin.reflect.KClass
 class BluetoothRemoteDevice @AssistedInject constructor(
     @Assisted address: String,
     @Assisted val scope: CoroutineScope,
-    connectionFactory: CipherBluetoothDeviceConnection.Factory
+    connectionFactory: CipherBluetoothDeviceConnection.Factory,
+    savedDevicesRepository: SavedDevicesRepository
 ) : RemoteDevice {
     private val connection = connectionFactory.create(
         deviceAddress = address,
@@ -146,8 +150,20 @@ class BluetoothRemoteDevice @AssistedInject constructor(
                 }
         }
         scope.launch(Dispatchers.IO) {
-            connection.data.collect{
-                if(it is DeviceConnectionStatus.DataMessage) {
+            connection.data.collect {
+                if (it is DeviceConnectionStatus.DataMessage) {
+                    (it.data as? HandshakeResponse)?.let {
+                        savedDevicesRepository.addDevice(
+                            Device(
+                                connection.credentials.first,
+                                connection.credentials.second,
+                                PASS_PHRASE,
+                                System.currentTimeMillis()
+                            )
+                        )
+                        savedDevicesRepository.setLastSeen(connection.credentials.second, System.currentTimeMillis())
+                        savedDevicesRepository.setName(connection.credentials.second, connection.credentials.first)
+                    }
                     (it.data as? Message)?.let {
                         _events.emit(object : RemoteDevice.Event {
                             override val id: Int = it.id
@@ -167,7 +183,7 @@ class BluetoothRemoteDevice @AssistedInject constructor(
             is Int -> DataType.SetInt to SetIntParameter.newBuilder().setId(id).setValue(value).build()
             is Float -> DataType.SetFloat to SetFloatParameter.newBuilder().setId(id).setValue(value).build()
             is String -> DataType.SetString to SetStringParameter.newBuilder().setId(id)
-                .setValue(ByteString.copyFromUtf8(value))
+                .setValue(ByteString.copyFromUtf8(value.trim()))
                 .build()
 
             is Boolean -> DataType.SetBoolean to SetBooleanParameter.newBuilder().setId(id).setValue(value).build()

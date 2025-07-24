@@ -1,11 +1,14 @@
-package com.force.confbb.data
+package com.force.confbb.data.test
 
+import com.force.confbb.data.UserDataRepository
 import com.force.confbb.model.DarkThemeConfig
 import com.force.confbb.model.UserData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class FakeUserDataRepository @Inject constructor() : UserDataRepository {
     override val userData: Flow<UserData>
         get() = flow {
