@@ -84,7 +84,7 @@ fun Device(
     }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text(text = id, style = MaterialTheme.typography.titleLarge) },
+            title = { Text(text = viewModel.remoteDevice.name, style = MaterialTheme.typography.titleLarge) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")

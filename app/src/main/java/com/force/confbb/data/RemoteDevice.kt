@@ -5,6 +5,7 @@ import com.force.confbb.model.DeviceParameter
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteDevice {
+    val name: String
     val state: Flow<State>
     val parameters: SnapshotStateMap<Int, DeviceParameter<*>>
     val events: Flow<Event>

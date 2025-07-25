@@ -62,6 +62,9 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
+    override val name: String
+        get() = connection.credentials.first
+
     override val state: StateFlow<RemoteDevice.State> = connection.data.map {
         when (it) {
             is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
