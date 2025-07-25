@@ -7,7 +7,6 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,7 +89,7 @@ fun Devices(
     val startForResult = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
     val lifecycleOwner = LocalLifecycleOwner.current
     val devices by viewModel.devices.collectAsStateWithLifecycle(
-        initialValue = emptyList(),
+        initialValue = DevicesViewModel.SavedDeviceState.Loading,
         lifecycle = lifecycleOwner.lifecycle
     )
     Scaffold(
@@ -175,7 +174,9 @@ fun Devices(
                 }
             }
             AnimatedVisibility(
-                !requestPermission && devices.isEmpty(),
+                !requestPermission &&
+                        devices is DevicesViewModel.SavedDeviceState.Loaded &&
+                        (devices as DevicesViewModel.SavedDeviceState.Loaded).devices.isEmpty(),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(32.dp)
@@ -200,23 +201,26 @@ fun Devices(
                     }
                 }
             }
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 160.dp),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(devices) { device ->
-                    DeviceCard(
-                        device = device,
-                        onClick = { onDeviceClick(it.address) },
-                        onMenuClick = { deviceEntity, action ->
-                            when (action) {
-                                "passphrase" -> viewModel.onChangePassphrase(deviceEntity)
-                                "delete" -> viewModel.onDeleteDevice(deviceEntity)
-                            }
-                        },
-                    )
+            if (devices is DevicesViewModel.SavedDeviceState.Loaded) {
+
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 160.dp),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items((devices as DevicesViewModel.SavedDeviceState.Loaded).devices) { device ->
+                        DeviceCard(
+                            device = device,
+                            onClick = { onDeviceClick(it.address) },
+                            onMenuClick = { deviceEntity, action ->
+                                when (action) {
+                                    "passphrase" -> viewModel.onChangePassphrase(deviceEntity)
+                                    "delete" -> viewModel.onDeleteDevice(deviceEntity)
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }

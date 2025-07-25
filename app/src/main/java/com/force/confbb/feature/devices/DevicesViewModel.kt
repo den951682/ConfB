@@ -35,7 +35,7 @@ class DevicesViewModel @Inject constructor(
     }
 
     val devices = savedDevicesRepository.devices.combine(tickerFlow) { savedDevices, current ->
-        savedDevices.map { it to (it.lastSeen > current - 70000) }
+        SavedDeviceState.Loaded(savedDevices.map { it to (it.lastSeen > current - 70000) })
     }
 
     fun onDeleteDevice(device: Device) {
@@ -48,5 +48,12 @@ class DevicesViewModel @Inject constructor(
         viewModelScope.launch {
             savedDevicesRepository.changePassphrase(device, "PiroJOKE")
         }
+    }
+
+    sealed class SavedDeviceState {
+        data object Loading : SavedDeviceState()
+        data class Loaded(
+            val devices: List<Pair<Device, Boolean>>
+        ) : SavedDeviceState()
     }
 }
