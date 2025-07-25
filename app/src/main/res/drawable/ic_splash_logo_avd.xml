@@ -1,0 +1,21 @@
+
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_logo">
+
+    <target
+        android:name="root"
+        android:animation="@animator/avd_root_scale_fade" />
+
+    <target
+        android:name="chip"
+        android:animation="@animator/avd_chip_rotate" />
+
+    <target
+        android:name="bt"
+        android:animation="@animator/avd_bt_rotate" />
+
+    <target
+        android:name="bt"
+        android:animation="@animator/avd_bt_scale" />
+
+</animated-vector>

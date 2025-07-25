@@ -92,6 +92,7 @@ dependencies {
         exclude(group = "com.intellij", module = "annotations")
     }
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.core.splashscreen)
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
     testImplementation(libs.junit)

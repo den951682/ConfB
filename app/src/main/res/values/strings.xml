@@ -1,6 +1,6 @@
 <resources>
     <string name="add_permission_for_bluetooth">Якщо кнопка "+" не працює, то відкрий налаштування додатку і увімкни дозволи для Bluetooth/Пристрої поряд</string>
-    <string name="app_name">ConfBB</string>
+    <string name="app_name">Конf</string>
     <string name="available_devices">Доступні пристрої</string>
     <string name="cancel">Відміна</string>
     <string name="change_passphrase">Змінити Pass-фразу</string>

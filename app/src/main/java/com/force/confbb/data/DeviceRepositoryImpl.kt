@@ -79,10 +79,12 @@ class DeviceRepositoryImpl @Inject constructor(
     override fun startScan() {
         context.registerReceiver(receiver, filter)
         _devices.value = emptyList()
-        if (bluetoothManager.adapter.startDiscovery()) {
-            _status.value = ScanDevicesStatus.SCANNING
-        } else {
-            _status.value = ScanDevicesStatus.FAILED
+        runCatching {
+            if (bluetoothManager.adapter.startDiscovery()) {
+                _status.value = ScanDevicesStatus.SCANNING
+            } else {
+                _status.value = ScanDevicesStatus.FAILED
+            }
         }
     }
 

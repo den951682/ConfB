@@ -1,0 +1,86 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="432dp"
+    android:height="432dp"
+    android:viewportWidth="432"
+    android:viewportHeight="432">
+
+    <group
+        android:name="root"
+        android:pivotX="216"
+        android:pivotY="216"
+        android:scaleX="0.75"
+        android:scaleY="0.75"
+        android:alpha="0">
+
+        <group
+            android:name="chip"
+            android:pivotX="216"
+            android:pivotY="216"
+            android:rotation="-20">
+
+            <path
+                android:name="chip_path"
+                android:fillColor="#FF424937"
+                android:strokeColor="#000"
+                android:strokeWidth="2"
+                android:pathData="M112.32,86.4 L319.68,86.4 A25.92,25.92 0 0 1 345.6,112.32 L345.6,319.68 A25.92,25.92 0 0 1 319.68,345.6 L112.32,345.6 A25.92,25.92 0 0 1 86.4,319.68 L86.4,112.32 A25.92,25.92 0 0 1 112.32,86.4 Z"/>
+
+            <!-- Ліві “ніжки” -->
+            <path android:pathData="M60.48,112.32h25.92v25.92h-25.92z" android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M60.48,164.16h25.92v25.92h-25.92z" android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M60.48,216h25.92v25.92h-25.92z"   android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M60.48,267.84h25.92v25.92h-25.92z" android:fillColor="@color/bkg_inv"/>
+
+            <!-- Праві “ніжки” -->
+            <path android:pathData="M345.6,112.32h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M345.6,164.16h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M345.6,216h25.92v25.92h-25.92z"     android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M345.6,267.84h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+
+            <!-- Верхні “ніжки” -->
+            <path android:pathData="M112.32,60.48h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M164.16,60.48h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M216,60.48h25.92v25.92h-25.92z"     android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M267.84,60.48h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+
+            <!-- Нижні “ніжки” -->
+            <path android:pathData="M112.32,345.6h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M164.16,345.6h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M216,345.6h25.92v25.92h-25.92z"     android:fillColor="@color/bkg_inv"/>
+            <path android:pathData="M267.84,345.6h25.92v25.92h-25.92z"  android:fillColor="@color/bkg_inv"/>
+
+        </group>
+
+        <group
+            android:name="bt"
+            android:pivotX="216"
+            android:pivotY="216"
+            android:scaleX="0.5"
+            android:scaleY="0.5"
+            android:translateY="20"
+            android:rotation="20">
+
+            <path
+                android:name="bt_path"
+                android:fillColor="#00000000"
+                android:strokeColor="#008fFF"
+                android:strokeWidth="16"
+                android:strokeLineJoin="round"
+                android:strokeLineCap="round"
+                android:pathData="
+                    M216,96
+                    L216,192
+                    L216,198
+                    L264,144
+                    L216,96
+                    M216,192
+                    L264,240
+                    L216,288
+                    L216,192
+                    M216,192
+                    L168,144
+                    M216,192
+                    L168,240" />
+        </group>
+    </group>
+</vector>

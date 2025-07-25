@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.ConfBB" parent="Theme.Base">
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo_avd</item>
+        <item name="android:windowSplashScreenAnimationDuration">3020</item>
+        <item name="android:windowSplashScreenBackground">@color/bkg</item>
+    </style>
+
+</resources>
