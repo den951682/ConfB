@@ -49,6 +49,7 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                             val guardText = "guard\n"
                             val request = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
                             super.send(guardText.toByteArray())
+                            Log.d(TAG, "Sending handshake")
                             send(byteArrayOf(DataType.HandshakeRequest.code) + request)
                         }
                     }

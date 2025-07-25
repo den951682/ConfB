@@ -92,6 +92,7 @@ open class BluetoothDeviceConnection @AssistedInject constructor(
                 try {
                     output?.write(data)
                     output?.flush()
+                    Log.d(TAG, "Sent data, output stream: $output")
                     _data.emit(DeviceConnectionStatus.SendMessage(data))
                 } catch (e: Exception) {
                     close(e)

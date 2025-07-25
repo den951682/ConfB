@@ -113,7 +113,7 @@ fun MyNavigationRail(
 ) {
     NavigationRail(
         modifier = modifier,
-        containerColor = Color.Transparent,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         header = header,
         content = content,
@@ -161,7 +161,7 @@ fun MyNavigationSuiteScaffold(
         layoutType = layoutType,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationBarContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            navigationRailContainerColor = Color.Transparent,
+            navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         containerColor = Color.Transparent,
     ) {
