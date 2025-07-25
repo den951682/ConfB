@@ -10,21 +10,28 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +54,7 @@ import com.force.confbb.model.Device
 fun DeviceCard(
     device: Pair<Device, Boolean>,
     onMenuClick: (Device, String) -> Unit,
+    onChangePassphrase: (Device, String) -> Unit,
     onClick: (Device) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -86,6 +94,9 @@ fun DeviceCard(
                     Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                 }
 
+                var showDialog by remember { mutableStateOf(false) }
+                var newPassphrase by remember { mutableStateOf("") }
+
                 DropdownMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false }
@@ -93,8 +104,9 @@ fun DeviceCard(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.change_passphrase)) },
                         onClick = {
+                            showDialog = true
                             menuExpanded = false
-                            onMenuClick(device.first, "passphrase")
+                            newPassphrase = device.first.passphrase
                         }
                     )
                     DropdownMenuItem(
@@ -102,6 +114,40 @@ fun DeviceCard(
                         onClick = {
                             menuExpanded = false
                             onMenuClick(device.first, "delete")
+                        }
+                    )
+                }
+                if (showDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDialog = false },
+                        text = {
+                            Column {
+                                Text("Нова пасс-фраза:")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = newPassphrase,
+                                    onValueChange = { newPassphrase = it.take(30) },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showDialog = false
+                                    onChangePassphrase(device.first, newPassphrase)
+                                }
+                            ) {
+                                Text(stringResource(R.string.change))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showDialog = false }
+                            ) {
+                                Text(stringResource(R.string.cancel))
+                            }
                         }
                     )
                 }

@@ -23,6 +23,10 @@ class FakeSavedDeviceRepository @Inject constructor() : SavedDevicesRepository {
         Log.d(TAG, "Change passphrase for ${device.address} to $newPassphrase")
     }
 
+    override suspend fun getDevice(id: String): Device? {
+        return null;
+    }
+
     override suspend fun addDevice(device: Device) {
 
     }

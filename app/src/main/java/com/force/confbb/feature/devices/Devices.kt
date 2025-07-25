@@ -213,9 +213,9 @@ fun Devices(
                         DeviceCard(
                             device = device,
                             onClick = { onDeviceClick(it.address) },
+                            onChangePassphrase = viewModel::onChangePassphrase,
                             onMenuClick = { deviceEntity, action ->
                                 when (action) {
-                                    "passphrase" -> viewModel.onChangePassphrase(deviceEntity)
                                     "delete" -> viewModel.onDeleteDevice(deviceEntity)
                                 }
                             },

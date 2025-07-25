@@ -1,6 +1,7 @@
 package com.force.confbb.data
 
 import android.util.Log
+import com.force.confbb.util.TAG
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -18,7 +19,7 @@ class CryptoManager(
         //todo set iterations to 100000. Встановлено 10000 так як esp32 дуже довго генерує ключ, варто ключ генерувати поза esp32 і передавати на неї через nfc або usb
         val spec = PBEKeySpec(passphrase.toCharArray(), salt, 10000, 256)
         val tmp = factory.generateSecret(spec)
-        Log.d("xxx", "key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
+        Log.d(TAG, "Pass ${passphrase}:  generated key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
         return SecretKeySpec(tmp.encoded, "AES")
     }
 

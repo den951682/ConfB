@@ -17,6 +17,9 @@ interface DevicesDao {
     @Query("SELECT * FROM devices")
     fun observeAll(): Flow<List<DeviceEntity>>
 
+    @Query("SELECT * FROM devices WHERE address = :id")
+    suspend fun getDevice(id: String): DeviceEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(device: DeviceEntity)
 

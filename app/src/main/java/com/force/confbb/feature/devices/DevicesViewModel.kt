@@ -44,9 +44,9 @@ class DevicesViewModel @Inject constructor(
         }
     }
 
-    fun onChangePassphrase(device: Device) {
+    fun onChangePassphrase(device: Device, passPhrase: String) {
         viewModelScope.launch {
-            savedDevicesRepository.changePassphrase(device, "PiroJOKE")
+            savedDevicesRepository.changePassphrase(device, passPhrase)
         }
     }
 

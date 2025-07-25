@@ -4,6 +4,7 @@
     <string name="app_name">Конf</string>
     <string name="available_devices">Доступні пристрої</string>
     <string name="cancel">Відміна</string>
+    <string name="change">Змінити</string>
     <string name="change_passphrase">Змінити Pass-фразу</string>
     <string name="connected">Підключено: %1$s</string>
     <string name="connecting">Підключення</string>

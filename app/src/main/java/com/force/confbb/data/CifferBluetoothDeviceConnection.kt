@@ -13,6 +13,7 @@ import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
+import com.force.confbb.util.PASS_PHRASE
 import com.force.confbb.util.TAG
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -24,13 +25,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
-import java.nio.charset.Charset
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
 class CipherBluetoothDeviceConnection @AssistedInject constructor(
     @Assisted private val deviceAddress: String,
     @Assisted private val coroutineScope: CoroutineScope,
-    bluetoothManager: BluetoothManager
+    bluetoothManager: BluetoothManager,
+    private val savedDevicesRepository: SavedDevicesRepository
 ) : BluetoothDeviceConnection(
     deviceAddress = deviceAddress,
     scope = coroutineScope,
@@ -39,6 +40,7 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
     private lateinit var cryptoManager: CryptoManager
 
     init {
+        Log.d(TAG, "Initializing CipherBluetoothDeviceConnection for device: $deviceAddress")
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 super.data.collect {
@@ -57,6 +59,9 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
 
     override suspend fun listenInputStream(input: InputStream, isActive: () -> Boolean) {
         try {
+            while (!::cryptoManager.isInitialized) {
+                delay(100)
+            }
             while (isActive()) {
                 if (input.available() > 0) {
                     input.read().let { b ->
@@ -82,7 +87,15 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
                                 "Received message size: $b, " +
                                         "content: ${message.joinToString(" ") { "%02X".format(it) }}"
                             )
-                            val data = cryptoManager.decryptData(message)
+
+                            val data = try {
+                                cryptoManager.decryptData(message)
+                            } catch (ex: Exception) {
+                                Log.d(TAG, "Error while decrypting data", ex)
+                                _data.emit(DeviceConnectionStatus.Error(ConfError.DecryptError()))
+                                return@let emptyList<Byte>()
+                            }
+
                             val dataType = DataType.fromCode(data[0])
                             val dataToParse = data.drop(1).toByteArray()
                             val proto = when (dataType) {
@@ -120,7 +133,8 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
         coroutineScope.launch {
             val dataToSend = withContext(Dispatchers.Default) {
                 if (!::cryptoManager.isInitialized) {
-                    cryptoManager = CryptoManager("PiroJOKE")
+                    val pass = savedDevicesRepository.getDevice(deviceAddress)?.passphrase ?: PASS_PHRASE
+                    cryptoManager = CryptoManager(pass)
                 }
                 val (iv, encrypted) = cryptoManager.encryptData(data)
                 val ivEncData = iv + encrypted

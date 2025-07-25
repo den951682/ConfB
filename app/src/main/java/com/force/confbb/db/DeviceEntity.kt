@@ -3,12 +3,13 @@ package com.force.confbb.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.force.confbb.model.Device
+import com.force.confbb.util.PASS_PHRASE
 
 @Entity(tableName = "devices")
 data class DeviceEntity(
     @PrimaryKey val address: String, // MAC address
     val name: String?,
-    val passphrase: String = "",
+    val passphrase: String = PASS_PHRASE,
     val lastSeen: Long = 0
 )
 
