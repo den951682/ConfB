@@ -1,175 +1,111 @@
 package com.force.confbb.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
-import com.force.confbb.designsystem.DraggableScrollbar
-import com.force.confbb.designsystem.LoadingOverlayWheel
-import com.force.confbb.designsystem.rememberDraggableScroller
-import com.force.confbb.designsystem.scrollbarState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flow
+import com.force.confbb.R
+import com.force.confbb.designsystem.LoadingWheel
 import kotlinx.serialization.Serializable
-import kotlin.random.Random
 
 @Serializable
-object SettingsRoute
+object InfoRoute
 
-fun NavController.navigateToSettings(navOptions: NavOptions) {
-    navigate(SettingsRoute, navOptions)
+fun NavController.navigateToInfo(navOptions: NavOptions) {
+    navigate(InfoRoute, navOptions)
 }
 
-data class I(val id: String, val text: String, val value: Int)
-
 @Composable
-fun Settings(
-    modifier: Modifier = Modifier
-) {
-    val list = (1..40).map { I(it.toString(), "$it", it) }
-
+fun Settings() {
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
-        val staggeredState = rememberLazyStaggeredGridState()
-        val itemsAvailable = list.size + 1
-        val scroller = staggeredState.rememberDraggableScroller(
-            itemsAvailable = itemsAvailable
-        )
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(120.dp),
-            contentPadding = PaddingValues(16.dp),
-            state = staggeredState,
-            verticalItemSpacing = 8.dp,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .fillMaxWidth()
-                        .layout { measurable, constraints ->
-                            val placeable = measurable.measure(
-                                constraints.copy(
-                                    minWidth = constraints.maxWidth + 32.dp.roundToPx(),
-                                    maxWidth = constraints.maxWidth + 32.dp.roundToPx(),
-                                ),
-                            )
-                            layout(placeable.width, placeable.height) {
-                                placeable.place(0, 0)
-                            }
-                        }
-                        .background(Color.Cyan)
-                )
-            }
-            items(list, key = { it.id }) { item ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(max(30.dp, (item.value * 7).dp))
-                        .background(Color.Gray)
-                        .then(
-                            if (item.value == 1) {
-                                Modifier
-                                    .background(Color.Red)
-                                    .layout { measurable, constraints ->
-                                        val placeable = measurable.measure(
-                                            constraints.copy(
-                                                maxWidth = constraints.maxWidth + 32.dp.roundToPx(),
-                                            )
-                                        )
-                                        layout(placeable.width, placeable.height) {
-                                            placeable.place(0, 0)
-                                        }
-                                    }
-                            } else {
-                                Modifier
-                            }
-                        )
-
-                )
-                {
-                    Text(
-                        text = item.text,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
+        Box(modifier = Modifier.fillMaxSize().aspectRatio(1f)) {
+            LoadingWheel(
+                modifier = Modifier
+                    .size(480.dp)
+                    .align(Alignment.TopCenter)
+                    .alpha(0.2f)
+            )
+            LoadingWheel(
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.TopStart)
+                    .offset(x = 120.dp, y = 270.dp)
+                    .alpha(0.2f)
+            )
+            LoadingWheel(
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-120).dp, y = 270.dp)
+                    .alpha(0.2f)
+            )
+            LoadingWheel(
+                modifier = Modifier
+                    .size(width = 160.dp, height = 40.dp)
+                    .align(Alignment.BottomCenter)
+                    .offset(y = (-270).dp)
+                    .alpha(0.2f)
+            )
         }
 
-        val visible = flow {
-            delay(30000)
-            emit(false)
-        }.collectAsStateWithLifecycle(
-            initialValue = true
-        )
-        TextButton(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .background(Color.Blue),
-            onClick = {
-                scroller(0.5f + Random.nextFloat() * 0.001f) // Прокрутка к середине списка
+                .padding(12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(12.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.about),
+                )
             }
-        ) {
-            Text("Прокрутить к середине")
-        }
-        staggeredState.DraggableScrollbar(
-            Modifier
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
-            Orientation.Vertical,
-            staggeredState.scrollbarState(itemsAvailable),
-            scroller
-        )
-
-        AnimatedVisibility(
-            modifier = Modifier.fillMaxWidth(),
-            visible = visible.value,
-            enter = slideInVertically(
-                initialOffsetY = { -it },
-                animationSpec = tween(durationMillis = 700)
-            ) + fadeIn(animationSpec = tween(700)),
-            exit = slideOutVertically(
-                targetOffsetY = { -it },
-                animationSpec = tween(durationMillis = 500)
-            ) + fadeOut(animationSpec = tween(500)),
-        ) {
-            LoadingOverlayWheel(
-                modifier = Modifier.align(Alignment.Center)
+            val context = LocalContext.current
+            val telegramUrl = "https://t.me/dn_rd"
+            Text(
+                text = "Служба підтримки",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(telegramUrl))
+                        context.startActivity(intent)
+                    },
+                color = Color.Red,
+                textDecoration = TextDecoration.Underline
             )
         }
     }
 }
+

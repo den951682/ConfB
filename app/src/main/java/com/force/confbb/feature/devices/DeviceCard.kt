@@ -111,8 +111,8 @@ fun DeviceCard(
             val color = if (device.second) Color.Green else Color.Gray
             val infiniteTransition = rememberInfiniteTransition(label = "pulse")
             val scale by infiniteTransition.animateFloat(
-                initialValue = 1f,
-                targetValue = 1.3f,
+                initialValue = 0.8f,
+                targetValue = 1.45f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(800, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse

@@ -60,7 +60,7 @@ fun ConfNavHost(
         terminalSection(
             onDeviceClick = navController::navigateToTerminal
         )
-        composable<SettingsRoute> {
+        composable<InfoRoute> {
             Settings()
         }
         dialog<ScanRoute> {

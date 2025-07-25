@@ -65,7 +65,7 @@ class AppState(
         when (topLevelDestination) {
             TopLevelDestination.DEVICES -> navController.navigateToDevices(navOptions)
             TopLevelDestination.TERMINAL -> navController.navigateToTerminalSection(navOptions)
-            TopLevelDestination.SETTINGS -> navController.navigateToSettings(navOptions)
+            TopLevelDestination.INFO -> navController.navigateToInfo(navOptions)
         }
     }
 }
