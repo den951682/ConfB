@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.force.confbb.feature.devices.navigateToDevices
+import com.force.confbb.feature.info.navigateToInfo
 import com.force.confbb.feature.terminal.navigateToTerminalSection
 import com.force.confbb.navigation.TopLevelDestination
 import kotlinx.coroutines.CoroutineScope

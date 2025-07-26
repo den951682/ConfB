@@ -17,7 +17,8 @@ sealed class ConfError(message: String, val isCritical: Boolean = true) : Except
     class ProtoDecodeError : ConfError("Помилка декодування протоколу, можливо, не сходяться версії")
     class ProtoEncodeError : ConfError("Помилка кодування протоколу")
     class EncodeError : ConfError("Помилка зашифрування")
-    class UncnownError : ConfError("Невідома помилка")
+    class SocketError : ConfError("З'єднання розірвано, можливо, пристрій вимкнено", true)
+    class UnknownError(message: String) : ConfError("Невідома помилка: $message", true)
 
     companion object {
         fun fromCode(code: Int): ConfError {
@@ -28,7 +29,7 @@ sealed class ConfError(message: String, val isCritical: Boolean = true) : Except
                 0x04 -> ProtoDecodeError()
                 0x05 -> ProtoEncodeError()
                 0x06 -> EncodeError()
-                else -> UncnownError()
+                else -> UnknownError("")
             }
         }
     }

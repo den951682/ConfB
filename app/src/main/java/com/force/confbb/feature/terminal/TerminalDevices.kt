@@ -1,5 +1,7 @@
 package com.force.confbb.feature.terminal
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.model.ScanDevicesStatus
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun TerminalDevices(
     onDeviceClick: (String) -> Unit,
@@ -41,8 +47,38 @@ fun TerminalDevices(
         val scanStatus by viewModel.status.collectAsStateWithLifecycle()
         val devices by viewModel.devices.collectAsStateWithLifecycle()
 
+        val permissionState = rememberMultiplePermissionsState(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                listOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            } else {
+                listOf(
+                    // This permission is normal, and don`t require runtime permission request
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
+        )
         AnimatedVisibility(
-            !isBluetoothEnabled,
+            !permissionState.allPermissionsGranted,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    stringResource(R.string.terminal_no_permisiions),
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        AnimatedVisibility(
+            !isBluetoothEnabled && permissionState.allPermissionsGranted,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(32.dp)
@@ -58,7 +94,7 @@ fun TerminalDevices(
             }
         }
         AnimatedVisibility(
-            isBluetoothEnabled,
+            isBluetoothEnabled && permissionState.allPermissionsGranted,
             modifier = Modifier
                 .fillMaxSize()
         ) {
@@ -93,7 +129,14 @@ fun TerminalDevices(
                     items(devices, key = { it.address }) { device ->
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { onDeviceClick(device.address) },
+                            onClick = {
+                                AnalyticsLogger.logDeviceSelected(
+                                    address = device.address,
+                                    name = device.name,
+                                    terminal = true
+                                )
+                                onDeviceClick(device.address)
+                            },
                         ) {
                             Text(text = device.name)
                         }

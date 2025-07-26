@@ -27,5 +27,6 @@
     <string name="scan_devices_title">Пошук пристроїв</string>
     <string name="terminal_devices_hint">Вибери пристрій для обміну текстом через Bluetooth Serial Port Profile (текст передається як є, без шифрування)</string>
     <string name="terminal_no_bluetooth">Потрібно увімкнути Bluetooth</string>
+    <string name="terminal_no_permisiions">Потрібно надати дозвіл для роботи з Bluetooth (Натисни кнопку + на першому екрані)</string>
     <string name="text_to_send">Текст для відправки</string>
 </resources>

@@ -14,6 +14,8 @@ import com.force.confb.pmodel.SetFloatParameter
 import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
 import com.force.confb.pmodel.StringParameter
+import com.force.confbb.analytics.AnalyticsLogger
+import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.Device
 import com.force.confbb.model.DeviceConnectionStatus
@@ -36,6 +38,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.nio.charset.Charset
@@ -66,18 +69,28 @@ class BluetoothRemoteDevice @AssistedInject constructor(
     override val name: String
         get() = connection.credentials.first
 
-    override val state: StateFlow<RemoteDevice.State> = connection.data.map {
-        when (it) {
-            is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
-            is DeviceConnectionStatus.Connected -> RemoteDevice.State.Connected
-            is DeviceConnectionStatus.Error -> RemoteDevice.State.Error(it.error)
-            else -> RemoteDevice.State.Connected
+    override val state: StateFlow<RemoteDevice.State> = connection.data
+        .scan<DeviceConnectionStatus, DeviceConnectionStatus>(DeviceConnectionStatus.Disconnected) { prev, current ->
+            val stop1 = prev is DeviceConnectionStatus.Error && prev.error !is ConfError
+            val stop2 = ((prev as? DeviceConnectionStatus.Error)?.error as? ConfError)?.isCritical == true
+            if (stop1 || stop2) {
+                prev
+            } else {
+                current
+            }
         }
-    }.stateIn(
-        scope = scope,
-        started = WhileSubscribed(5000),
-        initialValue = RemoteDevice.State.Disconnected
-    )
+        .map {
+            when (it) {
+                is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
+                is DeviceConnectionStatus.Connected -> RemoteDevice.State.Connected
+                is DeviceConnectionStatus.Error -> RemoteDevice.State.Error(it.error)
+                else -> RemoteDevice.State.Connected
+            }
+        }.stateIn(
+            scope = scope,
+            started = WhileSubscribed(5000),
+            initialValue = RemoteDevice.State.Disconnected
+        )
 
     override val parameters: SnapshotStateMap<Int, DeviceParameter<*>> = _parameters
 
@@ -193,6 +206,7 @@ class BluetoothRemoteDevice @AssistedInject constructor(
             is Boolean -> DataType.SetBoolean to SetBooleanParameter.newBuilder().setId(id).setValue(value).build()
             else -> throw IllegalArgumentException("Unsupported parameter type: ${value!!::class.java}")
         }
+        AnalyticsLogger.logParameterChanged(id, type.toString())
         Log.d(TAG, "Scheduled change for parameter $id: $value")
 
         debounceJobs[id]?.cancel()

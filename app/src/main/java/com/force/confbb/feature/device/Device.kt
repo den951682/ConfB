@@ -50,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confb.pmodel.Message
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.data.RemoteDevice
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.designsystem.NumValueSelector
@@ -72,7 +73,9 @@ fun Device(
 
         val error = state is RemoteDevice.State.Error
         val connected = state is RemoteDevice.State.Connected
-
+        LaunchedEffect(Unit) {
+            AnalyticsLogger.logScreenView("device_connected")
+        }
         LaunchedEffect(Unit) {
             viewModel.remoteDevice.events.collect { event ->
                 when (event.obj) {
@@ -92,12 +95,18 @@ fun Device(
             TopAppBar(
                 title = { Text(text = viewModel.remoteDevice.name, style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        AnalyticsLogger.logButtonClicked("device_back_left")
+                        onBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
                 actions = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        AnalyticsLogger.logButtonClicked("device_back_right")
+                        onBack()
+                    }) {
                         Icon(Icons.Default.Close, contentDescription = "Роз'єднати")
                     }
                 }
@@ -220,8 +229,10 @@ fun Device(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
+                LaunchedEffect(Unit) {
+                    AnalyticsLogger.logScreenView("device_connecting")
+                }
                 LoadingWheel(
-
                     modifier = Modifier
                         .size(60.dp)
                         .fillMaxWidth()
@@ -235,6 +246,9 @@ fun Device(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            LaunchedEffect(Unit) {
+                AnalyticsLogger.logScreenView("device_passphrase")
+            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,6 +265,7 @@ fun Device(
                 OutlinedTextField(
                     value = text.value,
                     onValueChange = {
+                        AnalyticsLogger.logEditText("device_passphrase")
                         if (it.length < 30) viewModel.passPrase.value = it
                     },
                     singleLine = true,
@@ -259,6 +274,7 @@ fun Device(
 
                 Button(
                     onClick = {
+                        AnalyticsLogger.logButtonClicked("device_passphrase_set")
                         viewModel.isPassPhraseSet.value = true
                     }
                 ) {

@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.model.ScanDevicesStatus
 import kotlinx.serialization.Serializable
@@ -58,6 +59,7 @@ fun ScanDevices(
     BasicAlertDialog(
         onDismissRequest = { },
     ) {
+        AnalyticsLogger.logScreenView("scan_devices")
         Surface(
             modifier = Modifier
                 .widthIn(364.dp)
@@ -103,7 +105,14 @@ fun ScanDevices(
                     items(devices, key = { it.address }) { device ->
                         TextButton(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { onDeviceClick(device.address) },
+                            onClick = {
+                                AnalyticsLogger.logDeviceSelected(
+                                    address = device.address,
+                                    name = device.name,
+                                    terminal = false
+                                )
+                                onDeviceClick(device.address)
+                            },
                         ) {
                             Text(text = device.name)
                         }
@@ -114,15 +123,18 @@ fun ScanDevices(
                         scanStatus != ScanDevicesStatus.SCANNING,
                     ) {
                         Button(
-                            onClick = { viewModel.startScan() },
-
-                            ) {
+                            onClick = {
+                                AnalyticsLogger.logButtonClicked("retry_scan")
+                                viewModel.startScan()
+                            },
+                        ) {
                             Text(stringResource(R.string.retry))
                         }
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
                         onClick = {
+                            AnalyticsLogger.logButtonClicked("cancel_scan")
                             viewModel.stopScan()
                             onDismiss()
                         },

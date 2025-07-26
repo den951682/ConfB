@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.serialization.Serializable
@@ -70,6 +71,7 @@ fun Devices(
     onShowSnackbar: suspend (String, String, SnackbarDuration) -> Boolean,
     viewModel: DevicesViewModel = hiltViewModel()
 ) {
+    AnalyticsLogger.logScreenView("saved_devices")
     val permissionState = rememberMultiplePermissionsState(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(
@@ -115,6 +117,7 @@ fun Devices(
             FloatingActionButton(
                 onClick = {
                     if (permissionState.allPermissionsGranted) {
+                        AnalyticsLogger.logButtonClicked("add_device")
                         requestPermission = false
                         if (enabledState) {
                             onAddDeviceClick()
@@ -122,6 +125,7 @@ fun Devices(
                             startForResult.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                         }
                     } else {
+                        AnalyticsLogger.log("permissions_not_granted")
                         requestPermission = true
                     }
                 }
@@ -133,6 +137,7 @@ fun Devices(
         LaunchedEffect(requestPermission) {
             if (requestPermission) {
                 permissionState.launchMultiplePermissionRequest()
+                requestPermission = false
             }
         }
 
@@ -146,6 +151,7 @@ fun Devices(
                         SnackbarDuration.Indefinite
                     )
                 ) {
+                    AnalyticsLogger.log("bluetooth_disabled")
                     startForResult.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                 }
             }
@@ -175,8 +181,11 @@ fun Devices(
             }
             AnimatedVisibility(
                 !requestPermission &&
-                        devices is DevicesViewModel.SavedDeviceState.Loaded &&
-                        (devices as DevicesViewModel.SavedDeviceState.Loaded).devices.isEmpty(),
+                        (
+                                (devices is DevicesViewModel.SavedDeviceState.Loaded &&
+                                        (devices as DevicesViewModel.SavedDeviceState.Loaded).devices.isEmpty()) ||
+                                        !permissionState.allPermissionsGranted
+                                ),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(32.dp)
@@ -201,7 +210,7 @@ fun Devices(
                     }
                 }
             }
-            if (devices is DevicesViewModel.SavedDeviceState.Loaded) {
+            if (devices is DevicesViewModel.SavedDeviceState.Loaded && permissionState.allPermissionsGranted) {
 
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 160.dp),
@@ -212,7 +221,14 @@ fun Devices(
                     items((devices as DevicesViewModel.SavedDeviceState.Loaded).devices) { device ->
                         DeviceCard(
                             device = device,
-                            onClick = { onDeviceClick(it.address, false) },
+                            onClick = {
+                                if (enabledState) {
+                                    onDeviceClick(it.address, false)
+                                } else {
+                                    AnalyticsLogger.log("bluetooth_disabled")
+                                    startForResult.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                                }
+                            },
                             onChangePassphrase = viewModel::onChangePassphrase,
                             onMenuClick = { deviceEntity, action ->
                                 when (action) {

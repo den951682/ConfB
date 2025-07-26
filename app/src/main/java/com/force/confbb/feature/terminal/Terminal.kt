@@ -37,6 +37,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.model.DeviceConnectionStatus
 
@@ -45,6 +46,7 @@ fun Terminal(
     id: String,
     viewModel: TerminalViewModel = hiltViewModel()
 ) {
+    AnalyticsLogger.logScreenView("terminal_screen")
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val messages by viewModel.items.collectAsStateWithLifecycle(
         lifecycle = lifecycleOwner.lifecycle,

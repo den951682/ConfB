@@ -20,7 +20,7 @@ class TerminalViewModel @AssistedInject constructor(
 
     private val connectionRepository = factory.create(deviceAddress, viewModelScope)
 
-    private val _items = MutableStateFlow<List<DeviceConnectionStatus>>(emptyList())
+    private val _items = MutableStateFlow<List<DeviceConnectionStatus>>(listOf(DeviceConnectionStatus.Disconnected))
     val items: StateFlow<List<DeviceConnectionStatus>> = _items
 
     init {

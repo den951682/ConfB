@@ -10,6 +10,8 @@ import com.force.confbb.feature.device.deviceSection
 import com.force.confbb.feature.device.navigateToDevice
 import com.force.confbb.feature.devices.Devices
 import com.force.confbb.feature.devices.DevicesRoute
+import com.force.confbb.feature.info.Info
+import com.force.confbb.feature.info.InfoRoute
 import com.force.confbb.feature.scan.ScanDevices
 import com.force.confbb.feature.scan.ScanRoute
 import com.force.confbb.feature.scan.navigateToScan
@@ -61,7 +63,7 @@ fun ConfNavHost(
             onDeviceClick = navController::navigateToTerminal
         )
         composable<InfoRoute> {
-            Settings()
+            Info()
         }
         dialog<ScanRoute> {
             ScanDevices(

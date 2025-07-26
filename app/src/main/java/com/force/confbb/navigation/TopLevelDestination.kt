@@ -8,7 +8,7 @@ import com.force.confbb.R
 import com.force.confbb.feature.devices.DevicesRoute
 import com.force.confbb.feature.terminal.TerminalDevicesRoute
 import com.force.confbb.feature.terminal.TerminalSectionRoute
-import com.force.confbb.ui.InfoRoute
+import com.force.confbb.feature.info.InfoRoute
 import kotlin.reflect.KClass
 
 enum class TopLevelDestination(

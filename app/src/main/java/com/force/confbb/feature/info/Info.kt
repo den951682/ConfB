@@ -1,4 +1,4 @@
-package com.force.confbb.ui
+package com.force.confbb.feature.info
 
 import android.content.Intent
 import android.net.Uri
@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.LoadingWheel
 import kotlinx.serialization.Serializable
 
@@ -37,11 +38,12 @@ fun NavController.navigateToInfo(navOptions: NavOptions) {
 }
 
 @Composable
-fun Settings() {
+fun Info() {
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        AnalyticsLogger.logScreenView("info_screen")
         Box(modifier = Modifier.fillMaxSize().aspectRatio(1f)) {
             LoadingWheel(
                 modifier = Modifier
@@ -99,6 +101,7 @@ fun Settings() {
                 modifier = Modifier
                     .padding(16.dp)
                     .clickable {
+                        AnalyticsLogger.logButtonClicked("support")
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(telegramUrl))
                         context.startActivity(intent)
                     },

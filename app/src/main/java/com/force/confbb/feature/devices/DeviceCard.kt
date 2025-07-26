@@ -48,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.force.confbb.R
+import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.model.Device
 
 @Composable
@@ -62,7 +63,10 @@ fun DeviceCard(
     Card(
         modifier = Modifier
             .width(180.dp)
-            .clickable { onClick(device.first) }
+            .clickable {
+                AnalyticsLogger.logButtonClicked("device_card")
+                onClick(device.first)
+            }
             .aspectRatio(4f / 3f)
     ) {
         Box(
@@ -90,7 +94,10 @@ fun DeviceCard(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
             ) {
-                IconButton(onClick = { menuExpanded = true }) {
+                IconButton(onClick = {
+                    AnalyticsLogger.logButtonClicked("devices_menu")
+                    menuExpanded = true
+                }) {
                     Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                 }
 
@@ -104,6 +111,7 @@ fun DeviceCard(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.change_passphrase)) },
                         onClick = {
+                            AnalyticsLogger.logButtonClicked("devices_menu_change_passphrase")
                             showDialog = true
                             menuExpanded = false
                             newPassphrase = device.first.passphrase
@@ -112,6 +120,7 @@ fun DeviceCard(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete)) },
                         onClick = {
+                            AnalyticsLogger.logButtonClicked("devices_menu_delete")
                             menuExpanded = false
                             onMenuClick(device.first, "delete")
                         }
@@ -126,7 +135,10 @@ fun DeviceCard(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedTextField(
                                     value = newPassphrase,
-                                    onValueChange = { newPassphrase = it.take(30) },
+                                    onValueChange = {
+                                        AnalyticsLogger.logEditText("saved_device_passphrase")
+                                        newPassphrase = it.take(30)
+                                    },
                                     singleLine = true,
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -135,6 +147,7 @@ fun DeviceCard(
                         confirmButton = {
                             TextButton(
                                 onClick = {
+                                    AnalyticsLogger.logButtonClicked("device_confirm_change_passphrase")
                                     showDialog = false
                                     onChangePassphrase(device.first, newPassphrase)
                                 }
@@ -144,7 +157,10 @@ fun DeviceCard(
                         },
                         dismissButton = {
                             TextButton(
-                                onClick = { showDialog = false }
+                                onClick = {
+                                    AnalyticsLogger.logButtonClicked("device_cancel_change_passphrase")
+                                    showDialog = false
+                                }
                             ) {
                                 Text(stringResource(R.string.cancel))
                             }
