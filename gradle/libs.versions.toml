@@ -21,6 +21,9 @@ protobuf_jl = "4.31.1"
 annotation = "1.7.1"
 room = "2.7.2"
 splash = "1.0.0"
+googleServices = "4.4.3"
+firebaseBom = "34.0.0"
+crashlytics = "3.0.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -57,6 +60,7 @@ androidx-anotations = { group = "androidx.annotation", name = "annotation", vers
 androidx-room = {group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = {group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -66,3 +70,5 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }

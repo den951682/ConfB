@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
 }
 
 protobuf {
@@ -93,6 +95,9 @@ dependencies {
     }
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(platform(libs.firebase.bom))
+    implementation("com.google.firebase:firebase-crashlytics-ndk")
+    implementation("com.google.firebase:firebase-analytics")
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
     testImplementation(libs.junit)
