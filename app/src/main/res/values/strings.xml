@@ -15,7 +15,10 @@
     <string name="item_devices">Пристрої</string>
     <string name="item_info">Інфо</string>
     <string name="item_terminal">Термінал</string>
+    <string name="leave">Залишити цю</string>
+    <string name="next">Далі</string>
     <string name="no_devices">У тебе немає підключених пристроїв, увімкни пристрій і натисни кнопку "+"</string>
+    <string name="pass_phrase_hint_default">Введи пасс-фразу, або залиш як є (якщо це перше підключення і (або) на пристрої пасс-фраза не змінювалалсь</string>
     <string name="retry">Повторити</string>
     <string name="retry_search">Повторити пошук</string>
     <string name="scan_devices_empty">Нічого не знайдено, увімкніть пристрій та переведіть його в режим видимості</string>

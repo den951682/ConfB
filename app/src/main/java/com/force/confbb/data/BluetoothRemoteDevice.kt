@@ -18,7 +18,6 @@ import com.force.confbb.model.DataType
 import com.force.confbb.model.Device
 import com.force.confbb.model.DeviceConnectionStatus
 import com.force.confbb.model.DeviceParameter
-import com.force.confbb.util.PASS_PHRASE
 import com.force.confbb.util.TAG
 import com.google.protobuf.ByteString
 import dagger.assisted.Assisted
@@ -44,13 +43,15 @@ import kotlin.reflect.KClass
 
 
 class BluetoothRemoteDevice @AssistedInject constructor(
-    @Assisted address: String,
+    @Assisted("address") address: String,
+    @Assisted("pass") val passPhrase: String,
     @Assisted val scope: CoroutineScope,
     connectionFactory: CipherBluetoothDeviceConnection.Factory,
     savedDevicesRepository: SavedDevicesRepository
 ) : RemoteDevice {
     private val connection = connectionFactory.create(
         deviceAddress = address,
+        passPhrase = passPhrase,
         scope = scope
     )
 
@@ -160,7 +161,7 @@ class BluetoothRemoteDevice @AssistedInject constructor(
                             Device(
                                 connection.credentials.first,
                                 connection.credentials.second,
-                                PASS_PHRASE,
+                                passPhrase,
                                 System.currentTimeMillis()
                             )
                         )
@@ -244,7 +245,8 @@ class BluetoothRemoteDevice @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            deviceAddress: String,
+            @Assisted("address") deviceAddress: String,
+            @Assisted("pass") passPhrase: String,
             scope: CoroutineScope
         ): BluetoothRemoteDevice
     }

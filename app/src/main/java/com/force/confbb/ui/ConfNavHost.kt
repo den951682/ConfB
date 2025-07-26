@@ -29,7 +29,7 @@ fun ConfNavHost(
             Devices(
                 onShowSnackbar = onShowSnackbar,
                 onAddDeviceClick = navController::navigateToScan,
-                onDeviceClick = { navController.navigateToDevice(it) }
+                onDeviceClick = { id: String, newDevice: Boolean -> navController.navigateToDevice(id, newDevice) }
             )
         }
         deviceSection(
@@ -68,7 +68,7 @@ fun ConfNavHost(
                 onDismiss = navController::popBackStack,
                 onDeviceClick = { id ->
                     navController.popBackStack()
-                    navController.navigateToDevice(id)
+                    navController.navigateToDevice(id, true)
                 },
             )
         }

@@ -13,7 +13,6 @@ import com.force.confb.pmodel.StringParameter
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.DeviceConnectionStatus
-import com.force.confbb.util.PASS_PHRASE
 import com.force.confbb.util.TAG
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -28,10 +27,10 @@ import java.io.InputStream
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
 class CipherBluetoothDeviceConnection @AssistedInject constructor(
-    @Assisted private val deviceAddress: String,
+    @Assisted("address") private val deviceAddress: String,
+    @Assisted("pass") private val passPhrase: String,
     @Assisted private val coroutineScope: CoroutineScope,
-    bluetoothManager: BluetoothManager,
-    private val savedDevicesRepository: SavedDevicesRepository
+    bluetoothManager: BluetoothManager
 ) : BluetoothDeviceConnection(
     deviceAddress = deviceAddress,
     scope = coroutineScope,
@@ -134,8 +133,7 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
         coroutineScope.launch {
             val dataToSend = withContext(Dispatchers.Default) {
                 if (!::cryptoManager.isInitialized) {
-                    val pass = savedDevicesRepository.getDevice(deviceAddress)?.passphrase ?: PASS_PHRASE
-                    cryptoManager = CryptoManager(pass)
+                    cryptoManager = CryptoManager(passPhrase)
                 }
                 val (iv, encrypted) = cryptoManager.encryptData(data)
                 val ivEncData = iv + encrypted
@@ -162,6 +160,10 @@ class CipherBluetoothDeviceConnection @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(deviceAddress: String, scope: CoroutineScope): CipherBluetoothDeviceConnection
+        fun create(
+            @Assisted("address") deviceAddress: String,
+            @Assisted("pass") passPhrase: String,
+            scope: CoroutineScope
+        ): CipherBluetoothDeviceConnection
     }
 }

@@ -45,7 +45,7 @@ open class BluetoothDeviceConnection @AssistedInject constructor(
 
     override val credentials: Pair<String, String>
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-        get() = bluetoothDevice.name to bluetoothDevice.address
+        get() = (bluetoothDevice.name ?: bluetoothDevice.address) to bluetoothDevice.address
 
     override val data: SharedFlow<DeviceConnectionStatus> = _data.asSharedFlow()
 

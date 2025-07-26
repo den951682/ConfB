@@ -66,7 +66,7 @@ fun NavController.navigateToDevices(navOptions: NavOptions? = null) {
 fun Devices(
     modifier: Modifier = Modifier,
     onAddDeviceClick: () -> Unit,
-    onDeviceClick: (String) -> Unit,
+    onDeviceClick: (String, newDevice: Boolean) -> Unit,
     onShowSnackbar: suspend (String, String, SnackbarDuration) -> Boolean,
     viewModel: DevicesViewModel = hiltViewModel()
 ) {
@@ -212,7 +212,7 @@ fun Devices(
                     items((devices as DevicesViewModel.SavedDeviceState.Loaded).devices) { device ->
                         DeviceCard(
                             device = device,
-                            onClick = { onDeviceClick(it.address) },
+                            onClick = { onDeviceClick(it.address, false) },
                             onChangePassphrase = viewModel::onChangePassphrase,
                             onMenuClick = { deviceEntity, action ->
                                 when (action) {
