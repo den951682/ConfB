@@ -1,4 +1,5 @@
 import com.google.protobuf.gradle.proto
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -40,6 +41,26 @@ android {
     namespace = "com.force.confbb"
     compileSdk = 36
 
+    val properties = Properties().apply {
+        load(rootProject.file("local.properties").inputStream())
+    }
+    val keystoreFile = properties["KEYSTORE_FILE"]?.toString()
+    val keystorePassword = properties["KEYSTORE_PASSWORD"]?.toString()
+    val alias = properties["KEY_ALIAS"]?.toString()
+    val password = properties["KEY_PASSWORD"]?.toString()
+
+    android {
+        signingConfigs {
+            create("release") {
+                storeFile = keystoreFile?.let { rootProject.file(it) }
+                storePassword = keystorePassword
+                keyAlias = alias
+                keyPassword = password
+            }
+        }
+    }
+
+
     defaultConfig {
         applicationId = "com.force.confbb"
         minSdk = 24
@@ -53,6 +74,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
