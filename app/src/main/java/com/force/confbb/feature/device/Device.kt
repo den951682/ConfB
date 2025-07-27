@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,7 @@ import com.force.confb.pmodel.Message
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.data.RemoteDevice
+import com.force.confbb.designsystem.JoystickVisualizer
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.designsystem.NumValueSelector
 import com.force.confbb.model.ConfError
@@ -111,6 +113,9 @@ fun Device(
                     }
                 }
             )
+            val x = remember { mutableStateOf(2048) }
+            val y = remember { mutableStateOf(2048) }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -119,6 +124,17 @@ fun Device(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(parameterList.value) { entry ->
+                    if (entry.value.id == 5) {
+                        if (entry.value.value is Int) {
+                            x.value = entry.value.value as Int
+                        }
+                    }
+                    if (entry.value.id == 6) {
+                        if (entry.value.value is Int) {
+                            y.value = entry.value.value as Int
+                        }
+
+                    }
                     Card(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -220,6 +236,17 @@ fun Device(
                                     fontWeight = FontWeight.Medium
                                 )
                             }
+                        }
+                    }
+                    if (entry.value.id == 5) {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            JoystickVisualizer(
+                                x.value, y.value,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .padding(vertical = 8.dp),
+                            )
                         }
                     }
                 }
