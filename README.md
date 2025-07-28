@@ -2,6 +2,14 @@
 ### Скачай [Conf 1.0.apk](https://github.com/den951682/ConfB/releases/download/V1.0/ConfB1.0.apk)
 Для встановлення, можливо, в налаштуваннях android треба буде дозволити встановлення додатків з невідомих джерел.
 
+
+https://github.com/user-attachments/assets/32ac3341-5eac-45a6-97f6-32ef8ba34ed7
+
+<p align="center">
+    <img src="https://github.com/den951682/misc/blob/main/Screenshot_20250728_111441_f.jpg" alt="Description" width="300">
+    <img src="https://github.com/den951682/misc/blob/main/Screenshot_20250728_111429_f.jpg" alt="Description" width="300">
+</p>
+
 ## Яким чином?
 Android-пристрій підключається за допомогою Bluetooth до ESP32, відкривається SPP-з'єднання і відбувається обмін повідомленнями.
 
