@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.confbb.data.BluetoothRemoteDevice
-import com.force.confbb.data.RemoteDevice
+import com.force.confbb.data.device.RemoteDevice
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.util.PASS_PHRASE
 import com.force.confbb.util.TAG

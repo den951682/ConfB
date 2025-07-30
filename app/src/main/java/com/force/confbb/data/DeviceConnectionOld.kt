@@ -4,7 +4,7 @@ import com.force.confbb.model.DeviceConnectionStatus
 import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 
-interface DeviceConnection {
+interface DeviceConnectionOld {
     val credentials: Pair<String, String>
     val data: Flow<DeviceConnectionStatus>
     suspend fun listenInputStream(input: InputStream, isActive: () -> Boolean)

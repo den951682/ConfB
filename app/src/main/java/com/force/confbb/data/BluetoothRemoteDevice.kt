@@ -15,6 +15,7 @@ import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
 import com.force.confb.pmodel.StringParameter
 import com.force.confbb.analytics.AnalyticsLogger
+import com.force.confbb.data.device.RemoteDevice
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.DataType
 import com.force.confbb.model.Device

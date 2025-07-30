@@ -33,7 +33,7 @@ open class BluetoothDeviceConnection @AssistedInject constructor(
     @Assisted private val deviceAddress: String,
     @Assisted private val scope: CoroutineScope,
     bluetoothManager: BluetoothManager,
-) : DeviceConnection {
+) : DeviceConnectionOld {
     private val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
 
