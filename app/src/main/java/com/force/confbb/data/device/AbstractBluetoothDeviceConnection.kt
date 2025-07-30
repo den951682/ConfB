@@ -12,16 +12,15 @@ import java.util.UUID
 abstract class AbstractBluetoothDeviceConnection(
     private val deviceAddress: String,
     scope: CoroutineScope,
-    bluetoothManager: BluetoothManager,
+    private val bluetoothManager: BluetoothManager,
 ) : AbstractDeviceConnection(scope) {
-    private val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-    private val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
-
     private lateinit var socket: BluetoothSocket
     override lateinit var input: InputStream
     override lateinit var output: OutputStream
 
     override fun connect() {
+        val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+        val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
         socket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
         socket.connect()
         Log.d(TAG, "Connected to $deviceAddress")

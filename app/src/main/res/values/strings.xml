@@ -6,11 +6,12 @@
     <string name="cancel">Відміна</string>
     <string name="change">Змінити</string>
     <string name="change_passphrase">Змінити Pass-фразу</string>
-    <string name="connected">Підключено: %1$s</string>
+    <string name="connected">Підключено</string>
     <string name="connecting">Підключення</string>
     <string name="delete">Видалити</string>
+    <string name="disconnected">Відключено</string>
     <string name="empty_search">Нічого не знайдено</string>
-    <string name="enable_bt_action">Вімкнути</string>
+    <string name="enable_bt_action">Увімкнути</string>
     <string name="enable_bt_hint">Щоб підключитись до пристрою, увімкни Bluetooth</string>
     <string name="item_devices">Пристрої</string>
     <string name="item_info">Інфо</string>

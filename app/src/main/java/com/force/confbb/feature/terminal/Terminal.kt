@@ -23,6 +23,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +34,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
+import com.force.confbb.data.device.DeviceConnection
 import com.force.confbb.designsystem.LoadingWheel
-import com.force.confbb.model.DeviceConnectionStatus
 
 @Composable
 fun Terminal(
@@ -47,11 +46,8 @@ fun Terminal(
     viewModel: TerminalViewModel = hiltViewModel()
 ) {
     AnalyticsLogger.logScreenView("terminal_screen")
-    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-    val messages by viewModel.items.collectAsStateWithLifecycle(
-        lifecycle = lifecycleOwner.lifecycle,
-        initialValue = emptyList()
-    )
+    val state by viewModel.state.collectAsState()
+    val messages by viewModel.items.collectAsStateWithLifecycle()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +60,7 @@ fun Terminal(
                 listState.animateScrollToItem(messages.lastIndex)
             }
         }
-        AnimatedVisibility(messages.lastOrNull().run { this is DeviceConnectionStatus.Disconnected || this == null }) {
+        AnimatedVisibility(state == DeviceConnection.State.Connecting) {
             LoadingWheel(modifier = Modifier.size(32.dp))
         }
         LazyColumn(
@@ -75,47 +71,56 @@ fun Terminal(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            items(messages) { message ->
-                when (message) {
-                    is DeviceConnectionStatus.Connected -> {
-                        Text(text = stringResource(R.string.connected, message.name))
+            if(state is DeviceConnection.State.Connected)  {
+                item{
+                    Text(text = stringResource(R.string.connected))
+                }
+            }
+            items(messages) { (incoming, message) ->
+                if (incoming) {
+                    Text(
+                        modifier = Modifier
+                            .background(Color.Blue.copy(alpha = 0.1f))
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        text = message,
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .background(Color.Green.copy(alpha = 0.1f))
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        text = message
+                    )
+                }
+            }
+            item {
+                when (state) {
+                    is DeviceConnection.State.Connecting -> {
+                        Text(text = stringResource(R.string.connecting))
                     }
 
-                    is DeviceConnectionStatus.Disconnected -> Text(text = stringResource(R.string.connecting))
-                    is DeviceConnectionStatus.Error -> {
+                    is DeviceConnection.State.Disconnected -> {
+                        Text(text = stringResource(R.string.disconnected))
+                    }
+
+                    is DeviceConnection.State.Error -> {
+                        val error = state as DeviceConnection.State.Error
                         Text(
                             modifier = Modifier
                                 .background(Color.Red.copy(alpha = 0.1f))
                                 .fillMaxWidth()
                                 .padding(4.dp),
-                            text = "Error: ${message.error.message ?: "Unknown error"}",
+                            text = "Error: ${error.error.message ?: "Unknown error"}",
                             color = MaterialTheme.colorScheme.error
                         )
                     }
 
-                    is DeviceConnectionStatus.Message -> Text(
-                        modifier = Modifier
-                            .background(Color.Blue.copy(alpha = 0.1f))
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        text = String(message.byteArray),
-                    )
-
-                    is DeviceConnectionStatus.SendMessage -> {
-                        Text(
-                            modifier = Modifier
-                                .background(Color.Green.copy(alpha = 0.1f))
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            text = String(message.byteArray)
-                        )
-                    }
-
-                    else -> Unit
+                    DeviceConnection.State.Connected -> Unit
                 }
             }
         }
-
         var text by remember { mutableStateOf("") }
         Row(
             modifier = Modifier
@@ -130,9 +135,7 @@ fun Terminal(
                     .weight(1f),
 
                 placeholder = { Text(stringResource(R.string.text_to_send)) },
-                enabled = messages.lastOrNull().run {
-                    this !is DeviceConnectionStatus.Error
-                }
+                enabled = state !is DeviceConnection.State.Error
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -140,11 +143,7 @@ fun Terminal(
                     viewModel.send(text)
                     text = ""
                 },
-                enabled = text.run { isNotBlank() } &&
-                        messages.lastOrNull().run {
-                            this !is DeviceConnectionStatus.Error &&
-                                    this !is DeviceConnectionStatus.Disconnected
-                        }
+                enabled = text.run { isNotBlank() } && state is DeviceConnection.State.Connected,
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,

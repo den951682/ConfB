@@ -69,6 +69,8 @@ class BluetoothRemoteDevice @AssistedInject constructor(
 
     override val name: String
         get() = connection.credentials.first
+    override val address: String
+        get() = ""
 
     override val state: StateFlow<RemoteDevice.State> = connection.data
         .scan<DeviceConnectionStatus, DeviceConnectionStatus>(DeviceConnectionStatus.Disconnected) { prev, current ->

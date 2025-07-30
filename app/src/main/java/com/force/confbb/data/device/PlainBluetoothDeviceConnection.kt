@@ -1,15 +1,20 @@
 package com.force.confbb.data.device
 
 import android.bluetooth.BluetoothManager
+import com.force.confbb.data.BluetoothDeviceConnection
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-class PlainBluetoothDeviceConnection(
-    deviceAddress: String,
-    private val scope: CoroutineScope,
+
+class PlainBluetoothDeviceConnection @AssistedInject constructor(
+    @Assisted deviceAddress: String,
+    @Assisted private val scope: CoroutineScope,
     bluetoothManager: BluetoothManager,
 ) : AbstractBluetoothDeviceConnection(
     deviceAddress, scope, bluetoothManager
@@ -27,5 +32,10 @@ class PlainBluetoothDeviceConnection(
         scope.launch(Dispatchers.IO) {
             send(dataObject.toString().toByteArray())
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(deviceAddress: String, scope: CoroutineScope): PlainBluetoothDeviceConnection
     }
 }

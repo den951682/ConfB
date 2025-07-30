@@ -53,7 +53,7 @@ abstract class AbstractDeviceConnection(
                 connect()
                 _state.value = DeviceConnection.State.Connected
                 while (isActive) {
-                    readDataObject()
+                    dataObjects.tryEmit(readDataObject())
                 }
                 _state.value = DeviceConnection.State.Disconnected
             } catch (ex: Exception) {
@@ -73,7 +73,7 @@ abstract class AbstractDeviceConnection(
         }
         scope.launch(Dispatchers.IO) {
             while (isActive) {
-                _events.tryEmit(DeviceConnection.Event.Error(fromCode(inputError.read())))
+                runCatching { _events.tryEmit(DeviceConnection.Event.Error(fromCode(inputError.read())))}
             }
         }
     }

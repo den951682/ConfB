@@ -2,8 +2,7 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.BluetoothDeviceConnection
-import com.force.confbb.model.DeviceConnectionStatus
+import com.force.confbb.data.device.PlainBluetoothDeviceConnection
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -15,18 +14,19 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = TerminalViewModel.Factory::class)
 class TerminalViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
-    factory: BluetoothDeviceConnection.Factory
+    factory: PlainBluetoothDeviceConnection.Factory
 ) : ViewModel() {
 
-    private val connectionRepository = factory.create(deviceAddress, viewModelScope)
+    private val connection = factory.create(deviceAddress, viewModelScope)
 
-    private val _items = MutableStateFlow<List<DeviceConnectionStatus>>(listOf(DeviceConnectionStatus.Disconnected))
-    val items: StateFlow<List<DeviceConnectionStatus>> = _items
+    private val _items = MutableStateFlow<List<Pair<Boolean, String>>>(listOf())
+    val items: StateFlow<List<Pair<Boolean, String>>> = _items
+    val state = connection.state
 
     init {
         viewModelScope.launch {
-            connectionRepository.data.collect { status ->
-                _items.value += status
+            connection.dataObjects.collect { status ->
+                _items.value += true to (status as String)
                 if (_items.value.size > 256) {
                     _items.value = _items.value.takeLast(128)
                 }
@@ -35,12 +35,13 @@ class TerminalViewModel @AssistedInject constructor(
     }
 
     fun send(text: String) {
-        connectionRepository.send(("$text\n").toByteArray())
+        connection.sendDataObject("$text\n")
+        _items.value += false to text
     }
 
     override fun onCleared() {
         super.onCleared()
-        connectionRepository.close()
+        connection.close()
     }
 
     @AssistedFactory

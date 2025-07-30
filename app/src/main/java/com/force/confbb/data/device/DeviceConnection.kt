@@ -14,7 +14,7 @@ interface DeviceConnection {
         data object Connecting : State()
         data object Connected : State()
         data object Disconnected : State()
-        data class Error(val error: Throwable) : State()
+        data class Error(val error: Exception) : State()
     }
 
     sealed class Event {
