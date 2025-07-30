@@ -25,7 +25,6 @@ abstract class AbstractDeviceConnection(
         extraBufferCapacity = 32,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-
     override val dataObjects = _dataObjects
 
     protected val _state = MutableStateFlow<DeviceConnection.State>(DeviceConnection.State.Connecting)
@@ -39,21 +38,24 @@ abstract class AbstractDeviceConnection(
 
     override val events = _events
 
-    private val inputError = PipedInputStream()
+    private val inputEvents = PipedInputStream()
 
-    protected val errorOutput = PipedOutputStream(inputError)
+    protected val eventsOutput = PipedOutputStream(inputEvents)
 
     protected abstract val input: InputStream
 
     protected abstract val output: OutputStream
 
+    protected abstract val dataReaderWriter: DataReaderWriter
+
     init {
         scope.launch(Dispatchers.IO) {
             try {
                 connect()
+                dataReaderWriter.init(input, output, eventsOutput, this@AbstractDeviceConnection::send)
                 _state.value = DeviceConnection.State.Connected
                 while (isActive) {
-                    dataObjects.tryEmit(readDataObject())
+                    dataObjects.tryEmit(dataReaderWriter.readDataObject())
                 }
                 _state.value = DeviceConnection.State.Disconnected
             } catch (ex: Exception) {
@@ -73,7 +75,7 @@ abstract class AbstractDeviceConnection(
         }
         scope.launch(Dispatchers.IO) {
             while (isActive) {
-                runCatching { _events.tryEmit(DeviceConnection.Event.Error(fromCode(inputError.read())))}
+                runCatching { _events.tryEmit(DeviceConnection.Event.Error(fromCode(inputEvents.read()))) }
             }
         }
     }
@@ -94,15 +96,19 @@ abstract class AbstractDeviceConnection(
         _state.value = DeviceConnection.State.Disconnected
     }
 
-    abstract fun readDataObject(): Any
-
     abstract fun connect()
 
     protected open fun release() {
         try {
-            inputError.close()
-            errorOutput.close()
+            inputEvents.close()
+            eventsOutput.close()
         } catch (e: Exception) {
         }
+    }
+
+    interface DataReaderWriter {
+        fun init(input: InputStream, outputStream: OutputStream, eventStream: OutputStream, send: (ByteArray) -> Unit)
+        fun readDataObject(): Any
+        fun sendDataObject(dataObject: Any)
     }
 }
