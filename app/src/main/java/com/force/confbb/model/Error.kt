@@ -32,5 +32,15 @@ sealed class ConfError(message: String, val isCritical: Boolean = true) : Except
                 else -> UnknownError("")
             }
         }
+
+        fun ConfError.toCode() = when (this) {
+            is CifferTextTooShortError -> 0x01
+            is DecryptError -> 0x02
+            is NotSupportedError -> 0x03
+            is ProtoDecodeError -> 0x04
+            is ProtoEncodeError -> 0x05
+            is EncodeError -> 0x06
+            else -> -1 // Unknown error, no code defined
+        }
     }
 }
