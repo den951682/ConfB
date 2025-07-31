@@ -1,6 +1,18 @@
 package com.force.confbb.model
 
-import com.force.confb.pmodel.Disconnect
+import com.force.confbb.model.DataType.Disconnect
+import com.force.confbb.model.DataType.HandshakeRequest
+import com.force.confbb.model.DataType.HandshakeResponse
+import com.force.confbb.model.DataType.ParameterInfo
+import com.force.confbb.model.DataType.SetBoolean
+import com.force.confbb.model.DataType.SetFloat
+import com.force.confbb.model.DataType.SetInt
+import com.force.confbb.model.DataType.SetString
+import com.force.confbb.model.DataType.TypeBoolean
+import com.force.confbb.model.DataType.TypeFloat
+import com.force.confbb.model.DataType.TypeInt
+import com.force.confbb.model.DataType.TypeMessage
+import com.force.confbb.model.DataType.TypeString
 
 /*
         #define TYPE_HANDSHAKE_REQUEST          0x00
@@ -52,5 +64,24 @@ sealed class DataType(val code: Byte) {
                 else -> throw IllegalArgumentException("Unknown DataType byte: $code")
             }
         }
+    }
+}
+
+fun Any.toDataType(): DataType {
+    return when (this) {
+        is com.force.confb.pmodel.HandshakeRequest -> HandshakeRequest
+        is com.force.confb.pmodel.HandshakeResponse -> HandshakeResponse
+        is com.force.confb.pmodel.ParameterInfo -> ParameterInfo
+        is Disconnect -> Disconnect
+        is com.force.confb.pmodel.SetIntParameter -> SetInt
+        is com.force.confb.pmodel.SetFloatParameter -> SetFloat
+        is com.force.confb.pmodel.SetStringParameter -> SetString
+        is com.force.confb.pmodel.SetBooleanParameter -> SetBoolean
+        is com.force.confb.pmodel.IntParameter -> TypeInt
+        is com.force.confb.pmodel.FloatParameter -> TypeFloat
+        is com.force.confb.pmodel.StringParameter -> TypeString
+        is com.force.confb.pmodel.BooleanParameter -> TypeBoolean
+        is com.force.confb.pmodel.Message -> TypeMessage
+        else -> throw IllegalArgumentException("This object not supported: ${this::class.simpleName}")
     }
 }

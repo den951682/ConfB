@@ -23,11 +23,15 @@ class CryptoManager(
         return SecretKeySpec(tmp.encoded, "AES")
     }
 
+    fun encryptDataWhole(data: ByteArray): ByteArray {
+        return encryptData(data, key).let { (iv, enc) -> iv + enc }
+    }
+
     fun encryptData(data: ByteArray): Pair<ByteArray, ByteArray> {
         return encryptData(data, key)
     }
 
-    fun encryptData(data: ByteArray, secretKey: SecretKey): Pair<ByteArray, ByteArray> {
+    private fun encryptData(data: ByteArray, secretKey: SecretKey): Pair<ByteArray, ByteArray> {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
         val iv = cipher.iv
@@ -43,7 +47,7 @@ class CryptoManager(
         return decrypted
     }
 
-    fun decryptData(iv: ByteArray, encrypted: ByteArray, secretKey: SecretKey): ByteArray {
+    private fun decryptData(iv: ByteArray, encrypted: ByteArray, secretKey: SecretKey): ByteArray {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         val spec = GCMParameterSpec(128, iv)
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)

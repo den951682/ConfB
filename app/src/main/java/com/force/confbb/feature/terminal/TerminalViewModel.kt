@@ -2,9 +2,8 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.device.AbstractDeviceConnection
 import com.force.confbb.data.device.BluetoothDeviceConnection
-import com.force.confbb.di.ReaderWriters
+import com.force.confbb.data.device.PlainDataReaderWriter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -16,10 +15,9 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = TerminalViewModel.Factory::class)
 class TerminalViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
-    factory: BluetoothDeviceConnection.Factory,
-    readerWriters: Map<@JvmSuppressWildcards ReaderWriters, @JvmSuppressWildcards AbstractDeviceConnection.DataReaderWriter>
+    factory: BluetoothDeviceConnection.Factory
 ) : ViewModel() {
-    private val connection = factory.create(deviceAddress, viewModelScope, readerWriters[ReaderWriters.PLAIN]!!)
+    private val connection = factory.create(deviceAddress, viewModelScope, PlainDataReaderWriter()).also { it.start() }
 
     private val _items = MutableStateFlow<List<Pair<Boolean, String>>>(listOf())
     val items: StateFlow<List<Pair<Boolean, String>>> = _items

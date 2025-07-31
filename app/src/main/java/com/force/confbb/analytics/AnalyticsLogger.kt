@@ -34,10 +34,9 @@ object AnalyticsLogger {
     }
 
 
-    fun logParameterChanged(id: Int, type: String) {
+    fun logParameterChanged(id: Int) {
         val bundle = Bundle().apply {
             putString("param_id", id.toString())
-            putString("param_type", type)
         }
         analytics.logEvent("parameter_changed", bundle)
     }

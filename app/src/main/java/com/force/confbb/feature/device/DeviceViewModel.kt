@@ -39,7 +39,7 @@ class DeviceViewModel @AssistedInject constructor(
             }
             isPassPhraseSet.collect {
                 if (it == true) {
-                    remoteDevice = factory.create(deviceAddress, passPrase.value, viewModelScope)
+                    remoteDevice = factory.create(deviceAddress, passPrase.value.trim(), viewModelScope)
                 }
             }
         }

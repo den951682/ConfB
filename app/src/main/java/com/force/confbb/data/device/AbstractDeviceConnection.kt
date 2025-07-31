@@ -19,7 +19,7 @@ import java.io.PipedOutputStream
 import kotlin.coroutines.cancellation.CancellationException
 
 abstract class AbstractDeviceConnection(
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
 ) : DeviceConnection {
     private val _dataObjects = MutableSharedFlow<Any>(
         extraBufferCapacity = 32,
@@ -48,7 +48,7 @@ abstract class AbstractDeviceConnection(
 
     protected abstract val dataReaderWriter: DataReaderWriter
 
-    init {
+    override fun start() {
         scope.launch(Dispatchers.IO) {
             try {
                 connect()
@@ -88,6 +88,24 @@ abstract class AbstractDeviceConnection(
         } catch (ex: Exception) {
             _state.value = DeviceConnection.State.Error(ConfError.SocketError())
             release()
+        }
+    }
+
+    override fun sendDataObject(dataObject: Any) {
+        try {
+            dataReaderWriter.sendDataObject(dataObject)
+            Log.d(TAG, "Sent data object: ${dataObject::class.simpleName}")
+        } catch (ex: Exception) {
+            if (ex is CancellationException) {
+                _state.value = DeviceConnection.State.Disconnected
+            } else {
+                val error = when (ex) {
+                    is IOException -> ConfError.SocketError()
+                    is ConfError -> ex
+                    else -> ConfError.UnknownError(ex.message ?: "")
+                }
+                _state.value = DeviceConnection.State.Error(error)
+            }
         }
     }
 

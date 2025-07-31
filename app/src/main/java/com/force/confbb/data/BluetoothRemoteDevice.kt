@@ -15,11 +15,11 @@ import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
 import com.force.confb.pmodel.StringParameter
 import com.force.confbb.analytics.AnalyticsLogger
+import com.force.confbb.data.device.BluetoothDeviceConnection
+import com.force.confbb.data.device.CifferDataReaderWriter
+import com.force.confbb.data.device.DeviceConnection
 import com.force.confbb.data.device.RemoteDevice
-import com.force.confbb.model.ConfError
-import com.force.confbb.model.DataType
 import com.force.confbb.model.Device
-import com.force.confbb.model.DeviceConnectionStatus
 import com.force.confbb.model.DeviceParameter
 import com.force.confbb.util.TAG
 import com.google.protobuf.ByteString
@@ -35,29 +35,31 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 import kotlin.reflect.KClass
 
-
 class BluetoothRemoteDevice @AssistedInject constructor(
     @Assisted("address") address: String,
     @Assisted("pass") val passPhrase: String,
     @Assisted val scope: CoroutineScope,
-    connectionFactory: CipherBluetoothDeviceConnection.Factory,
+    factory: BluetoothDeviceConnection.Factory,
     savedDevicesRepository: SavedDevicesRepository
 ) : RemoteDevice {
-    private val connection = connectionFactory.create(
-        deviceAddress = address,
-        passPhrase = passPhrase,
-        scope = scope
+    private lateinit var cryptoManager: CryptoManager
+            ;
+    private val cifferDataReaderWriter = CifferDataReaderWriter(
+        { cryptoManager.decryptData(it) },
+        { cryptoManager.encryptDataWhole(it) }
     )
+    private val connection = factory.create(
+        deviceAddress = address,
+        scope = scope,
+        cifferDataReaderWriter
+    ).also { it.start() }
 
     private val _parameters = mutableStateMapOf<Int, DeviceParameter<*>>()
 
@@ -68,32 +70,22 @@ class BluetoothRemoteDevice @AssistedInject constructor(
     )
 
     override val name: String
-        get() = connection.credentials.first
+        get() = connection.info.name
     override val address: String
-        get() = ""
+        get() = connection.info.address
 
-    override val state: StateFlow<RemoteDevice.State> = connection.data
-        .scan<DeviceConnectionStatus, DeviceConnectionStatus>(DeviceConnectionStatus.Disconnected) { prev, current ->
-            val stop1 = prev is DeviceConnectionStatus.Error && prev.error !is ConfError
-            val stop2 = ((prev as? DeviceConnectionStatus.Error)?.error as? ConfError)?.isCritical == true
-            if (stop1 || stop2) {
-                prev
-            } else {
-                current
-            }
+    override val state: StateFlow<RemoteDevice.State> = connection.state.map {
+        when (it) {
+            is DeviceConnection.State.Connecting -> RemoteDevice.State.Connecting
+            is DeviceConnection.State.Disconnected -> RemoteDevice.State.Disconnected
+            is DeviceConnection.State.Connected -> RemoteDevice.State.Connected
+            is DeviceConnection.State.Error -> RemoteDevice.State.Error(it.error)
         }
-        .map {
-            when (it) {
-                is DeviceConnectionStatus.Disconnected -> RemoteDevice.State.Disconnected
-                is DeviceConnectionStatus.Connected -> RemoteDevice.State.Connected
-                is DeviceConnectionStatus.Error -> RemoteDevice.State.Error(it.error)
-                else -> RemoteDevice.State.Connected
-            }
-        }.stateIn(
-            scope = scope,
-            started = WhileSubscribed(5000),
-            initialValue = RemoteDevice.State.Disconnected
-        )
+    }.stateIn(
+        scope = scope,
+        started = WhileSubscribed(5000),
+        initialValue = RemoteDevice.State.Disconnected
+    )
 
     override val parameters: SnapshotStateMap<Int, DeviceParameter<*>> = _parameters
 
@@ -102,26 +94,12 @@ class BluetoothRemoteDevice @AssistedInject constructor(
     private val debounceJobs = mutableMapOf<Int, Job>()
 
     init {
-        scope.launch(Dispatchers.IO) {
-            connection.data
-                .filterIsInstance<DeviceConnectionStatus.DataMessage>()
-                .mapNotNull { it.data }
-                .collect { parameter ->
-                    val handler = converters[parameter::class]
-                    if (handler != null) {
-                        handler(parameter)
-                    } else {
-                        Log.d(TAG, "Unsupported parameter type: ${parameter::class}")
-                    }
-                }
+        scope.launch(Dispatchers.Default) {
+            cryptoManager = CryptoManager(passPhrase)
         }
         scope.launch(Dispatchers.IO) {
-            connection.data
-                .filter { it is DeviceConnectionStatus.DataMessage }
-                .map { it as DeviceConnectionStatus.DataMessage }
-                .map { it.data }
-                .filter { it is ParameterInfo }
-                .map { it as ParameterInfo }
+            connection.dataObjects
+                .filterIsInstance<ParameterInfo>()
                 .collect { parameterInfo ->
                     _parameters[parameterInfo.id] = _parameters[parameterInfo.id].let { ep ->
                         when (parameterInfo.type) {
@@ -170,27 +148,26 @@ class BluetoothRemoteDevice @AssistedInject constructor(
                 }
         }
         scope.launch(Dispatchers.IO) {
-            connection.data.collect {
-                if (it is DeviceConnectionStatus.DataMessage) {
-                    (it.data as? HandshakeResponse)?.let {
-                        savedDevicesRepository.addDevice(
-                            Device(
-                                connection.credentials.first,
-                                connection.credentials.second,
-                                passPhrase,
-                                System.currentTimeMillis()
-                            )
+            connection.dataObjects.collect {
+                (it as? HandshakeResponse)?.let {
+                    savedDevicesRepository.addDevice(
+                        Device(
+                            connection.info.name,
+                            connection.info.address,
+                            passPhrase,
+                            System.currentTimeMillis()
                         )
-                        savedDevicesRepository.setLastSeen(connection.credentials.second, System.currentTimeMillis())
-                        savedDevicesRepository.setName(connection.credentials.second, connection.credentials.first)
-                    }
-                    (it.data as? Message)?.let {
-                        _events.emit(object : RemoteDevice.Event {
-                            override val id: Int = it.id
-                            override val obj: Any = it
-                        })
-                    }
+                    )
+                    savedDevicesRepository.setLastSeen(connection.info.address, System.currentTimeMillis())
+                    savedDevicesRepository.setName(connection.info.address, connection.info.name)
                 }
+                (it as? Message)?.let {
+                    _events.emit(object : RemoteDevice.Event {
+                        override val id: Int = it.id
+                        override val obj: Any = it
+                    })
+                }
+                converters[it::class]?.let { handler -> handler(it) }
             }
         }
     }
@@ -199,24 +176,24 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         val newParameter = (_parameters[id] as? DeviceParameter<Any>)
             ?.copy(changeRequestSend = true, value = value as Any)
         _parameters[id] = newParameter as DeviceParameter<*>
-        val (type, request) = when (value) {
-            is Int -> DataType.SetInt to SetIntParameter.newBuilder().setId(id).setValue(value).build()
-            is Float -> DataType.SetFloat to SetFloatParameter.newBuilder().setId(id).setValue(value).build()
-            is String -> DataType.SetString to SetStringParameter.newBuilder().setId(id)
+        val request = when (value) {
+            is Int -> SetIntParameter.newBuilder().setId(id).setValue(value).build()
+            is Float -> SetFloatParameter.newBuilder().setId(id).setValue(value).build()
+            is String -> SetStringParameter.newBuilder().setId(id)
                 .setValue(ByteString.copyFromUtf8(value.trim()))
                 .build()
 
-            is Boolean -> DataType.SetBoolean to SetBooleanParameter.newBuilder().setId(id).setValue(value).build()
+            is Boolean -> SetBooleanParameter.newBuilder().setId(id).setValue(value).build()
             else -> throw IllegalArgumentException("Unsupported parameter type: ${value!!::class.java}")
         }
-        AnalyticsLogger.logParameterChanged(id, type.toString())
+        AnalyticsLogger.logParameterChanged(id)
         Log.d(TAG, "Scheduled change for parameter $id: $value")
 
         debounceJobs[id]?.cancel()
         debounceJobs[id] = scope.launch {
             delay(if (value is String) 3000 else 1000)
             Log.d(TAG, "Value sent for parameter $id: $value")
-            connection.send(byteArrayOf(type.code) + request.toByteArray())
+            connection.sendDataObject(request)
             debounceJobs.remove(id)
         }
     }
