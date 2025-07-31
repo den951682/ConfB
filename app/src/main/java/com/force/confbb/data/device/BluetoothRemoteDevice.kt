@@ -1,4 +1,4 @@
-package com.force.confbb.data
+package com.force.confbb.data.device
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
@@ -15,10 +15,8 @@ import com.force.confb.pmodel.SetIntParameter
 import com.force.confb.pmodel.SetStringParameter
 import com.force.confb.pmodel.StringParameter
 import com.force.confbb.analytics.AnalyticsLogger
-import com.force.confbb.data.device.BluetoothDeviceConnection
-import com.force.confbb.data.device.CifferDataReaderWriter
-import com.force.confbb.data.device.DeviceConnection
-import com.force.confbb.data.device.RemoteDevice
+import com.force.confbb.data.CryptoManager
+import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.model.Device
 import com.force.confbb.model.DeviceParameter
 import com.force.confbb.util.TAG
@@ -33,7 +31,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -83,7 +81,7 @@ class BluetoothRemoteDevice @AssistedInject constructor(
         }
     }.stateIn(
         scope = scope,
-        started = WhileSubscribed(5000),
+        started = SharingStarted.Companion.WhileSubscribed(5000),
         initialValue = RemoteDevice.State.Disconnected
     )
 
