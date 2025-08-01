@@ -121,6 +121,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ndk")
     implementation("com.google.firebase:firebase-analytics")
     implementation(project(":connection"))
+    implementation(project(":model"))
     implementation(project(":misc"))
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)

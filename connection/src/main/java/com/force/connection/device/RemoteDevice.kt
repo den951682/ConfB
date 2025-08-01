@@ -5,13 +5,13 @@ import com.force.model.DeviceParameter
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteDevice {
-    val name: String
-    val address: String
+    val name: Flow<String?>
+    val address: Flow<String?>
     val state: Flow<State>
     val events: Flow<Event>
-
     val parameters: Map<Int, DeviceParameter<*>>
     fun <T> setParameterValue(id: Int, value: T)
+    fun start()
     fun close()
 
     sealed class State {

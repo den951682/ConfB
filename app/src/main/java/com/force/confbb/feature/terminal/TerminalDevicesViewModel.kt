@@ -3,8 +3,8 @@ package com.force.confbb.feature.terminal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.confbb.data.DevicesRepository
-import com.force.confbb.model.Device
-import com.force.confbb.model.ScanDevicesStatus
+import com.force.model.Device
+import com.force.model.ScanDevicesStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TerminalDevicesViewModel @Inject constructor(
-    private val devicesRepository: DevicesRepository
+    private val devicesRepository: DevicesRepository,
 ) : ViewModel() {
     val isBluetoothEnabled = devicesRepository.enabled.stateIn(
         viewModelScope,
@@ -24,7 +24,7 @@ class TerminalDevicesViewModel @Inject constructor(
     val status: StateFlow<ScanDevicesStatus> = devicesRepository.status.stateIn(
         viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ScanDevicesStatus.IDDLE,
+        initialValue = ScanDevicesStatus.IDLE,
     )
 
     val devices: StateFlow<List<Device>> = devicesRepository.devices.stateIn(

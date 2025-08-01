@@ -2,8 +2,8 @@ package com.force.confbb.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.force.confbb.model.Device
 import com.force.misc.PASS_PHRASE
+import com.force.model.Device
 
 @Entity(tableName = "devices")
 data class DeviceEntity(

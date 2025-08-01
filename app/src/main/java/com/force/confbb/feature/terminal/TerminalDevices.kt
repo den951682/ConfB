@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.LoadingWheel
-import com.force.confbb.model.ScanDevicesStatus
+import com.force.model.ScanDevicesStatus
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 

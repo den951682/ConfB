@@ -42,7 +42,7 @@ fun NavGraphBuilder.deviceSection(
                 viewModel = hiltViewModel<DeviceViewModel, DeviceViewModel.Factory>(
                     key = id
                 ) { factory ->
-                    factory.create(id, newDevice)
+                    factory.create(id)
                 })
         }
     }

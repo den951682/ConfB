@@ -13,18 +13,18 @@ class ConfDataObjectInputStream(
 ) {
     fun readDataObject(): Any {
         decodeFrameInputStream.readDecryptedFrame().let { frame ->
-            val dataType = frame[0].toInt()
+            val dataType = frame[0]
             val dataToParse = frame.drop(1).toByteArray()
             return try {
                 parser.parse(dataType, dataToParse)
-            } catch (ex: Exception){
+            } catch (ex: Exception) {
                 log(CONN_TAG, "Unhandled received data type: ${frame[0]}")
                 errorOutput.write(ConfException.NotSupportedException().toCode())
             }
         }
     }
 
-    interface ObjectParser{
-        fun parse(type: Int, data: ByteArray): Any
+    interface ObjectParser {
+        fun parse(type: Byte, data: ByteArray): Any
     }
 }

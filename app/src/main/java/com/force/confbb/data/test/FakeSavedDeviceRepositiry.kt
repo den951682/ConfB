@@ -2,8 +2,8 @@ package com.force.confbb.data.test
 
 import android.util.Log
 import com.force.confbb.data.SavedDevicesRepository
-import com.force.confbb.model.Device
 import com.force.misc.TAG
+import com.force.model.Device
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

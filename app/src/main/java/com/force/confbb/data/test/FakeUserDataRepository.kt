@@ -1,8 +1,8 @@
 package com.force.confbb.data.test
 
 import com.force.confbb.data.UserDataRepository
-import com.force.confbb.model.DarkThemeConfig
-import com.force.confbb.model.UserData
+import com.force.model.DarkThemeConfig
+import com.force.model.UserData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

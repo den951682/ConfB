@@ -49,7 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
-import com.force.confbb.model.Device
+import com.force.model.Device
 
 @Composable
 fun DeviceCard(

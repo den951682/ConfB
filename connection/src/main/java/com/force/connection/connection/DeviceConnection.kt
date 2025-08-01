@@ -4,7 +4,7 @@ import com.force.connection.ConnectionEvent
 import kotlinx.coroutines.flow.Flow
 
 interface DeviceConnection {
-    val info: Info
+    val info: Flow<Info>
     val dataObjects: Flow<Any>
     val state: Flow<State>
     val events: Flow<ConnectionEvent>

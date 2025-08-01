@@ -3,8 +3,8 @@ package com.force.confbb.data
 import com.force.confbb.db.DevicesDao
 import com.force.confbb.db.toDevice
 import com.force.confbb.db.toEntity
-import com.force.confbb.model.Device
 import com.force.misc.PASS_PHRASE
+import com.force.model.Device
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

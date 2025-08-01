@@ -52,12 +52,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confb.pmodel.Message
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
-import com.force.connection.device.RemoteDevice
 import com.force.confbb.designsystem.JoystickVisualizer
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.designsystem.NumValueSelector
-import com.force.confbb.model.ConfError
+import com.force.connection.device.RemoteDevice
 import com.force.misc.PASS_PHRASE
+import com.force.model.ConfException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,12 +90,17 @@ fun Device(
         LaunchedEffect(error) {
             if (error) {
                 val e = (state as? RemoteDevice.State.Error)?.error
-                runCatching { onError(e, (e as? ConfError)?.isCritical == true) }
+                runCatching { onError(e, (e as? ConfException)?.isCritical == true) }
             }
         }
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text(text = viewModel.remoteDevice.name, style = MaterialTheme.typography.titleLarge) },
+                title = {
+                    Text(
+                        text = viewModel.remoteDevice.name.value ?: "",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         AnalyticsLogger.logButtonClicked("device_back_left")
@@ -283,7 +288,7 @@ fun Device(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val text = viewModel.passPrase.collectAsStateWithLifecycle()
+                val text = viewModel.passPhrase.collectAsStateWithLifecycle()
                 val wasChanged by remember(text) {
                     derivedStateOf { text.value != PASS_PHRASE }
                 }
@@ -293,7 +298,7 @@ fun Device(
                     value = text.value,
                     onValueChange = {
                         AnalyticsLogger.logEditText("device_passphrase")
-                        if (it.length < 30) viewModel.passPrase.value = it
+                        if (it.length < 30) viewModel.passPhrase.value = it
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()

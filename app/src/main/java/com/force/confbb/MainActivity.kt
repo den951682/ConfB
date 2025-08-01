@@ -28,8 +28,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var text: String
 
     private val viewModel: MainActivityViewModel by viewModels()
 

@@ -9,6 +9,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.flowOf
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
@@ -24,13 +25,13 @@ class BluetoothDeviceConnection @AssistedInject constructor(
     override lateinit var input: InputStream
     override lateinit var output: OutputStream
 
-    override val info: DeviceConnection.Info by lazy {
+    override val info = flowOf(
         DeviceConnection.Info(
             type = DeviceConnection.Type.Bluetooth,
             address = deviceAddress,
             name = bluetoothManager.adapter.getRemoteDevice(deviceAddress).name ?: deviceAddress
         )
-    }
+    )
 
     override fun connect() {
         val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -54,7 +55,7 @@ class BluetoothDeviceConnection @AssistedInject constructor(
         fun create(
             deviceAddress: String,
             scope: CoroutineScope,
-            dataReader: DataReaderWriter
+            dataReaderWriter: DataReaderWriter
         ): BluetoothDeviceConnection
     }
 }

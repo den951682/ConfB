@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.confbb.data.DevicesRepository
 import com.force.confbb.data.SavedDevicesRepository
-import com.force.confbb.model.Device
+import com.force.model.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted

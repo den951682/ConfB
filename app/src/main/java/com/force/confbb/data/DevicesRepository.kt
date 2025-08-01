@@ -1,7 +1,7 @@
 package com.force.confbb.data
 
-import com.force.confbb.model.Device
-import com.force.confbb.model.ScanDevicesStatus
+import com.force.model.Device
+import com.force.model.ScanDevicesStatus
 import kotlinx.coroutines.flow.Flow
 
 interface DevicesRepository {

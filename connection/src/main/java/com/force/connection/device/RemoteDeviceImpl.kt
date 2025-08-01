@@ -1,7 +1,6 @@
 package com.force.connection.device
 
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.force.confb.pmodel.BooleanParameter
 import com.force.confb.pmodel.FloatParameter
 import com.force.confb.pmodel.HandshakeResponse
@@ -22,17 +21,16 @@ import com.force.model.DeviceParameter
 import com.google.protobuf.ByteString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
@@ -40,27 +38,29 @@ import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 import kotlin.reflect.KClass
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class RemoteDeviceImpl(
     private val scope: CoroutineScope,
-    private val connection: DeviceConnection,
+    private val connectionProvider: ConnectionProvider
 ) : RemoteDevice {
-    private val _parameters = mutableStateMapOf<Int, DeviceParameter<*>>()
+    private lateinit var connection: DeviceConnection
 
-    private val _events = MutableSharedFlow<RemoteDevice.Event>(
-        replay = 0,
-        extraBufferCapacity = 32,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    private val connectionFlow = MutableSharedFlow<DeviceConnection>(replay = 1)
 
-    override val name: String
-        get() = connection.info.name
-    override val address: String
-        get() = connection.info.address
+    override val name = connectionFlow
+        .flatMapLatest { it.info.map { info -> info.name } }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
+    override val address = connectionFlow
+        .flatMapLatest { it.info.map { info -> info.address } }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
     private val _state = MutableStateFlow<RemoteDevice.State>(RemoteDevice.State.Connecting)
 
-    override val state: StateFlow<RemoteDevice.State> = merge(
+    override val state = merge(
         _state,
-        connection.state
+        connectionFlow
+            .flatMapLatest { it.state }
             .filter { it !is DeviceConnection.State.Connected }
             .map {
                 when (it) {
@@ -72,22 +72,26 @@ class RemoteDeviceImpl(
                     )
                 }
             }
-    ).distinctUntilChanged()
-        .stateIn(
-            scope = scope,
-            started = SharingStarted.Companion.WhileSubscribed(5000),
-            initialValue = RemoteDevice.State.Disconnected
-        )
+    ).stateIn(scope, SharingStarted.Eagerly, RemoteDevice.State.Connecting)
 
-    override val parameters: SnapshotStateMap<Int, DeviceParameter<*>> = _parameters
+    private val _parameters = mutableStateMapOf<Int, DeviceParameter<*>>()
 
-    override val events: SharedFlow<RemoteDevice.Event> = _events
+    private val _events = MutableSharedFlow<RemoteDevice.Event>(
+        replay = 0,
+        extraBufferCapacity = 32,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    override val events = _events
+
+    override val parameters = _parameters
 
     private val debounceJobs = mutableMapOf<Int, Job>()
 
     init {
         scope.launch(Dispatchers.IO) {
-            connection.dataObjects
+            connectionFlow
+                .flatMapLatest { it.dataObjects }
                 .filterIsInstance<ParameterInfo>()
                 .collect { parameterInfo ->
                     _parameters[parameterInfo.id] = _parameters[parameterInfo.id].let { ep ->
@@ -136,28 +140,31 @@ class RemoteDeviceImpl(
                     }
                 }
         }
+
         scope.launch(Dispatchers.IO) {
-            connection.dataObjects.collect {
-                (it as? HandshakeResponse)?.let {
-                    Device(
-                        connection.info.name,
-                        connection.info.address,
-                        "passPhrase",
-                        System.currentTimeMillis()
-                    )
-                        .also { device ->
-                            _state.emit(RemoteDevice.State.Connected(device))
-                            log(CONN_TAG, "Device connected: ${device.name} at ${device.address}")
-                        }
+            connectionFlow
+                .flatMapLatest { it.dataObjects }
+                .collect {
+                    (it as? HandshakeResponse)?.let {
+                        Device(
+                            name.value ?: "Unknown Device",
+                            address.value ?: "Unknown Address",
+                            "passPhrase",
+                            System.currentTimeMillis()
+                        )
+                            .also { device ->
+                                _state.value = RemoteDevice.State.Connected(device)
+                                log(CONN_TAG, "Device connected: ${device.name} at ${device.address}")
+                            }
+                    }
+                    (it as? Message)?.let {
+                        _events.emit(object : RemoteDevice.Event {
+                            override val id: Int = it.id
+                            override val obj: Any = it
+                        })
+                    }
+                    converters[it::class]?.let { handler -> handler(it) }
                 }
-                (it as? Message)?.let {
-                    _events.emit(object : RemoteDevice.Event {
-                        override val id: Int = it.id
-                        override val obj: Any = it
-                    })
-                }
-                converters[it::class]?.let { handler -> handler(it) }
-            }
         }
     }
 
@@ -184,6 +191,15 @@ class RemoteDeviceImpl(
             log(CONN_TAG, "Value sent for parameter $id: $value")
             connection.sendDataObject(request)
             debounceJobs.remove(id)
+        }
+    }
+
+    override fun start() {
+        scope.launch(Dispatchers.Default) {
+            val newConnection = connectionProvider.getConnection()
+            connection = newConnection
+            connection.start()
+            connectionFlow.emit(newConnection)
         }
     }
 
@@ -223,4 +239,8 @@ class RemoteDeviceImpl(
                 ?: DeviceParameter(p.id, value = value)
         }
     )
+
+    interface ConnectionProvider {
+        suspend fun getConnection(): DeviceConnection
+    }
 }

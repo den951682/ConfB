@@ -3,8 +3,8 @@ package com.force.confbb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.confbb.data.UserDataRepository
-import com.force.confbb.model.DarkThemeConfig
-import com.force.confbb.model.UserData
+import com.force.model.DarkThemeConfig
+import com.force.model.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map

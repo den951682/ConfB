@@ -10,9 +10,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.annotation.RequiresPermission
 import com.force.confbb.di.ApplicationScope
-import com.force.confbb.model.Device
-import com.force.confbb.model.ScanDevicesStatus
 import com.force.confbb.util.BluetoothMonitor
+import com.force.model.Device
+import com.force.model.ScanDevicesStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -62,7 +62,7 @@ class DeviceRepositoryImpl @Inject constructor(
 
     override val enabled: Flow<Boolean> = bluetoothMonitor.isEnabled
 
-    private val _status = MutableStateFlow(ScanDevicesStatus.IDDLE)
+    private val _status = MutableStateFlow(ScanDevicesStatus.IDLE)
 
     override val status: Flow<ScanDevicesStatus> = _status
 

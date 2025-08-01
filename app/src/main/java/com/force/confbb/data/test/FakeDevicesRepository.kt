@@ -2,8 +2,8 @@ package com.force.confbb.data.test
 
 import com.force.confbb.data.DevicesRepository
 import com.force.confbb.di.ApplicationScope
-import com.force.confbb.model.Device
-import com.force.confbb.model.ScanDevicesStatus
+import com.force.model.Device
+import com.force.model.ScanDevicesStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,7 @@ class FakeDevicesRepository @Inject constructor(
     private val scope: CoroutineScope
 ) : DevicesRepository {
     override val enabled = flowOf(false)
-    private val _status = MutableStateFlow(ScanDevicesStatus.IDDLE)
+    private val _status = MutableStateFlow(ScanDevicesStatus.IDLE)
     override val status = _status.asStateFlow()
 
     private val _devices: MutableStateFlow<List<Device>> = MutableStateFlow(emptyList())
