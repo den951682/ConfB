@@ -10,8 +10,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.UUID
 
 @SuppressLint("MissingPermission")
@@ -21,9 +19,9 @@ class BluetoothDeviceConnection @AssistedInject constructor(
     @Assisted override val dataReaderWriter: DataReaderWriter,
     private val bluetoothManager: BluetoothManager,
 ) : AbstractDeviceConnection(scope) {
-    private lateinit var socket: BluetoothSocket
-    override lateinit var input: InputStream
-    override lateinit var output: OutputStream
+
+    private lateinit var btSocket: BluetoothSocket
+    override lateinit var socket: SocketIO
 
     override val info = flowOf(
         DeviceConnection.Info(
@@ -36,17 +34,18 @@ class BluetoothDeviceConnection @AssistedInject constructor(
     override fun connect() {
         val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
-        socket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
-        socket.connect()
+        btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
+        btSocket.connect()
+        socket = ConnectionSocketIO(
+            btSocket.inputStream,
+            btSocket.outputStream
+        )
         log(CONN_TAG, "Connected to $deviceAddress")
-        input = socket.inputStream
-        output = socket.outputStream
     }
 
     override fun release() {
-        runCatching { input.close() }
-        runCatching { output.close() }
         runCatching { socket.close() }
+        runCatching { btSocket.close() }
         super.release()
     }
 

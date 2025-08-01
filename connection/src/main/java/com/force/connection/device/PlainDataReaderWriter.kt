@@ -1,12 +1,12 @@
 package com.force.connection.device
 
-import com.force.connection.connection.AbstractDeviceConnection
+import com.force.connection.connection.DataReaderWriter
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.OutputStream
 
-class PlainDataReaderWriter : AbstractDeviceConnection.DataReaderWriter {
+class PlainDataReaderWriter : DataReaderWriter {
     private lateinit var bufferedReader: BufferedReader
     private lateinit var send: (ByteArray) -> Unit
     override fun init(

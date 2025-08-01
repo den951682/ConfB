@@ -2,7 +2,7 @@ package com.force.connection.device
 
 import android.util.Log
 import com.force.confb.pmodel.HandshakeRequest
-import com.force.connection.connection.AbstractDeviceConnection
+import com.force.connection.connection.DataReaderWriter
 import com.force.connection.stream.ConfDataObjectInputStream
 import com.force.connection.stream.ConfDataObjectOutputStream
 import com.force.connection.stream.DecodeFrameInputStream
@@ -17,7 +17,7 @@ class CifferDataReaderWriter(
     private val parser: ConfDataObjectInputStream.ObjectParser,
     private val decrypt: (ByteArray) -> ByteArray,
     private val encrypt: (ByteArray) -> ByteArray
-) : AbstractDeviceConnection.DataReaderWriter {
+) : DataReaderWriter {
     private lateinit var confDataObjectInputStream: ConfDataObjectInputStream
     private lateinit var confDataObjectOutputStream: ConfDataObjectOutputStream
     private lateinit var send: (ByteArray) -> Unit
