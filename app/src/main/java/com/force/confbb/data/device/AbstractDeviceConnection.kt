@@ -3,7 +3,8 @@ package com.force.confbb.data.device
 import android.util.Log
 import com.force.confbb.model.ConfError
 import com.force.confbb.model.ConfError.Companion.fromCode
-import com.force.confbb.util.TAG
+import com.force.connection.connection.DeviceConnection
+import com.force.misc.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow

@@ -19,7 +19,11 @@ import com.force.confbb.data.CryptoManager
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.model.Device
 import com.force.confbb.model.DeviceParameter
-import com.force.confbb.util.TAG
+import com.force.connection.connection.BluetoothDeviceConnection
+import com.force.connection.device.RemoteDeviceImpl
+import com.force.connection.connection.DeviceConnection
+import com.force.connection.device.RemoteDevice
+import com.force.misc.TAG
 import com.google.protobuf.ByteString
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -240,6 +244,6 @@ class BluetoothRemoteDevice @AssistedInject constructor(
             @Assisted("address") deviceAddress: String,
             @Assisted("pass") passPhrase: String,
             scope: CoroutineScope
-        ): BluetoothRemoteDevice
+        ): RemoteDeviceImpl
     }
 }

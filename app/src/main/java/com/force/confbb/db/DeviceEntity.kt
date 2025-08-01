@@ -3,7 +3,7 @@ package com.force.confbb.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.force.confbb.model.Device
-import com.force.confbb.util.PASS_PHRASE
+import com.force.misc.PASS_PHRASE
 
 @Entity(tableName = "devices")
 data class DeviceEntity(

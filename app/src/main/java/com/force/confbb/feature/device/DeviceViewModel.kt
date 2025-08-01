@@ -3,11 +3,11 @@ package com.force.confbb.feature.device
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.device.BluetoothRemoteDevice
-import com.force.confbb.data.device.RemoteDevice
+import com.force.connection.device.RemoteDeviceImpl
+import com.force.connection.device.RemoteDevice
 import com.force.confbb.data.SavedDevicesRepository
-import com.force.confbb.util.PASS_PHRASE
-import com.force.confbb.util.TAG
+import com.force.misc.PASS_PHRASE
+import com.force.misc.TAG
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -20,7 +20,7 @@ class DeviceViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
     @Assisted val newDevice: Boolean,
     private val savedDevicesRepository: SavedDevicesRepository,
-    factory: BluetoothRemoteDevice.Factory,
+    factory: RemoteDeviceImpl.Factory,
 ) : ViewModel() {
 
     lateinit var remoteDevice: RemoteDevice

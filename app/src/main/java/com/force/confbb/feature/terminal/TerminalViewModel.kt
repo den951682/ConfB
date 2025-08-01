@@ -2,8 +2,8 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.device.BluetoothDeviceConnection
-import com.force.confbb.data.device.PlainDataReaderWriter
+import com.force.connection.connection.BluetoothDeviceConnection
+import com.force.connection.device.PlainDataReaderWriter
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

@@ -3,11 +3,12 @@ package com.force.confbb.data.device
 import ConfDataObjectOutputStream
 import android.util.Log
 import com.force.confb.pmodel.HandshakeRequest
-import com.force.confbb.data.streams.ConfDataObjectInputStream
-import com.force.confbb.data.streams.DecodeFrameInputStream
-import com.force.confbb.data.streams.EncodeFrameOutputStream
-import com.force.confbb.data.streams.TeeFrameErrorInputStream
-import com.force.confbb.util.TAG
+import com.force.connection.connection.AbstractDeviceConnection
+import com.force.connection.stream.ConfDataObjectInputStream
+import com.force.connection.stream.DecodeFrameInputStream
+import com.force.connection.stream.EncodeFrameOutputStream
+import com.force.connection.stream.TeeFrameErrorInputStream
+import com.force.misc.TAG
 import java.io.InputStream
 import java.io.OutputStream
 

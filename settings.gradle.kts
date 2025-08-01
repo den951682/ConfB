@@ -21,4 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "ConfBB"
 include(":app")
- 
+include(":connection")
+include(":misc")
+include(":model")

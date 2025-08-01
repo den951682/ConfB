@@ -52,12 +52,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confb.pmodel.Message
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
-import com.force.confbb.data.device.RemoteDevice
+import com.force.connection.device.RemoteDevice
 import com.force.confbb.designsystem.JoystickVisualizer
 import com.force.confbb.designsystem.LoadingWheel
 import com.force.confbb.designsystem.NumValueSelector
 import com.force.confbb.model.ConfError
-import com.force.confbb.util.PASS_PHRASE
+import com.force.misc.PASS_PHRASE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

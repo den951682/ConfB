@@ -1,7 +1,7 @@
 package com.force.confbb.data
 
 import android.util.Log
-import com.force.confbb.util.TAG
+import com.force.misc.TAG
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory

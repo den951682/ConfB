@@ -1,5 +1,6 @@
 package com.force.confbb.data.device
 
+import com.force.connection.connection.AbstractDeviceConnection
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader

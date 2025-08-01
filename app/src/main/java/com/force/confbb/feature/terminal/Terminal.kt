@@ -37,7 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
-import com.force.confbb.data.device.DeviceConnection
+import com.force.connection.connection.DeviceConnection
 import com.force.confbb.designsystem.LoadingWheel
 
 @Composable

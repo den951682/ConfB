@@ -4,7 +4,10 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.util.Log
-import com.force.confbb.util.TAG
+import com.force.connection.connection.AbstractDeviceConnection
+import com.force.connection.connection.BluetoothDeviceConnection
+import com.force.connection.connection.DeviceConnection
+import com.force.misc.TAG
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
