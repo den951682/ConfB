@@ -6,7 +6,7 @@ import java.io.OutputStream
 
 interface Protocol {
     val events: Flow<Any>
-    suspend fun init(input: InputStream, output: OutputStream) {}
-    suspend fun read(): Any
+    suspend fun init(input: InputStream, output: OutputStream)
+    suspend fun receive(): Any
     suspend fun send(data: Any)
 }

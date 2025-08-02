@@ -19,7 +19,7 @@ class PlainProtocol() : Protocol {
         reader = BufferedReader(InputStreamReader(input))
     }
 
-    override suspend fun read(): String {
+    override suspend fun receive(): String {
         return reader.readLine()
     }
 

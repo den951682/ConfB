@@ -12,7 +12,7 @@ class ReaderLoop(
     suspend fun start() {
         try {
             while (currentCoroutineContext().isActive) {
-                val obj = protocol.read()
+                val obj = protocol.receive()
                 onRead(obj)
             }
         } catch (e: Exception) {

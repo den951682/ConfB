@@ -36,21 +36,12 @@ class PassPhraseAesProtocol(
         send(handShake)
     }
 
-    override suspend fun read(): Any {
+    override suspend fun receive(): Any {
         val encryptedFrame = readEncryptedFrame()
-        val decryptedFrame = try {
-            decrypt(encryptedFrame)
-        } catch (ex: Exception) {
-            throw ConfException.DecryptException()
-        }
+        val decryptedFrame = decryptFrame(encryptedFrame)
         val dataType = decryptedFrame[0]
         val dataToParse = decryptedFrame.drop(1).toByteArray()
-        return try {
-            parser.parse(dataType, dataToParse)
-        } catch (ex: Exception) {
-            log(CONN_TAG, "Unhandled received data type: $dataType")
-            events.emit(ConfException.NotSupportedException())
-        }
+        return parseFrame(dataType, dataToParse)
     }
 
     override suspend fun send(data: Any) {
@@ -59,6 +50,23 @@ class PassPhraseAesProtocol(
         val toSend = byteArrayOf(encrypted.size.toByte()) + encrypted
         output.write(toSend)
         output.flush()
+    }
+
+    private suspend fun parseFrame(dataType: Byte, frame: ByteArray): Any {
+        return try {
+            parser.parse(dataType, frame)
+        } catch (ex: Exception) {
+            log(CONN_TAG, "Unhandled received data type: $dataType")
+            events.emit(ConfException.NotSupportedException())
+        }
+    }
+
+    private fun decryptFrame(frame: ByteArray): ByteArray {
+        return try {
+            decrypt(frame)
+        } catch (ex: Exception) {
+            throw ConfException.DecryptException()
+        }
     }
 
     private suspend fun readEncryptedFrame(): ByteArray {
