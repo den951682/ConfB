@@ -19,6 +19,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = DeviceViewModel.Factory::class)
@@ -27,7 +28,6 @@ class DeviceViewModel @AssistedInject constructor(
     private val factory: BluetoothDeviceConnection.Factory,
     private val savedDevicesRepository: SavedDevicesRepository,
 ) : ViewModel() {
-
 
     val remoteDevice = RemoteDeviceImpl(
         scope = viewModelScope,
@@ -55,22 +55,14 @@ class DeviceViewModel @AssistedInject constructor(
     )
 
     val passPhrase = MutableStateFlow(PASS_PHRASE)
-    val isPassPhraseSet = MutableStateFlow<Boolean?>(null)
+    val isPassPhraseSet = MutableStateFlow<Boolean>(false)
 
     init {
         Log.d(TAG, "Creating ViewModel for device: $deviceAddress $this")
         viewModelScope.launch {
-            savedDevicesRepository.getDevice(deviceAddress)?.passphrase?.let {
-                passPhrase.value = it
-                isPassPhraseSet.value = true
-            } ?: run {
-                isPassPhraseSet.value = false
-            }
-            isPassPhraseSet.collect {
-                if (it == true) {
-                    remoteDevice.start()
-                }
-            }
+            getExistedPassphrase()
+            isPassPhraseSet.first { it }
+            remoteDevice.start()
         }
         viewModelScope.launch {
             remoteDevice.state
@@ -91,6 +83,15 @@ class DeviceViewModel @AssistedInject constructor(
         value: T
     ) {
         remoteDevice.setParameterValue(parameterId, value)
+    }
+
+    private suspend fun getExistedPassphrase() {
+        savedDevicesRepository.getDevice(deviceAddress)?.passphrase?.let {
+            passPhrase.value = it
+            isPassPhraseSet.value = true
+        } ?: run {
+            isPassPhraseSet.value = false
+        }
     }
 
     @AssistedFactory

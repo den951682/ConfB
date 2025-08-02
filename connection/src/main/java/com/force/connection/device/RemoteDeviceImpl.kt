@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemoteDeviceImpl(
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
     private val connection: DeviceConnection
 ) : RemoteDevice {
     override val name = connection.info.map { info -> info.name }
