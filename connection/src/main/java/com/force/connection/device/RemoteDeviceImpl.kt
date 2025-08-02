@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
@@ -41,26 +40,19 @@ import kotlin.reflect.KClass
 @OptIn(ExperimentalCoroutinesApi::class)
 class RemoteDeviceImpl(
     private val scope: CoroutineScope,
-    private val connectionProvider: ConnectionProvider
+    private val connection: DeviceConnection
 ) : RemoteDevice {
-    private lateinit var connection: DeviceConnection
-
-    private val connectionFlow = MutableSharedFlow<DeviceConnection>(replay = 1)
-
-    override val name = connectionFlow
-        .flatMapLatest { it.info.map { info -> info.name } }
+    override val name = connection.info.map { info -> info.name }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val address = connectionFlow
-        .flatMapLatest { it.info.map { info -> info.address } }
+    override val address = connection.info.map { info -> info.address }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val _state = MutableStateFlow<RemoteDevice.State>(RemoteDevice.State.Connecting)
 
     override val state = merge(
         _state,
-        connectionFlow
-            .flatMapLatest { it.state }
+        connection.state
             .filter { it !is DeviceConnection.State.Connected }
             .map {
                 when (it) {
@@ -72,7 +64,7 @@ class RemoteDeviceImpl(
                     )
                 }
             }
-    ).stateIn(scope, SharingStarted.Eagerly, RemoteDevice.State.Connecting)
+    )
 
     private val _parameters = mutableStateMapOf<Int, DeviceParameter<*>>()
 
@@ -90,8 +82,7 @@ class RemoteDeviceImpl(
 
     init {
         scope.launch(Dispatchers.IO) {
-            connectionFlow
-                .flatMapLatest { it.dataObjects }
+            connection.dataObjects
                 .filterIsInstance<ParameterInfo>()
                 .collect { parameterInfo ->
                     _parameters[parameterInfo.id] = _parameters[parameterInfo.id].let { ep ->
@@ -142,8 +133,7 @@ class RemoteDeviceImpl(
         }
 
         scope.launch(Dispatchers.IO) {
-            connectionFlow
-                .flatMapLatest { it.dataObjects }
+            connection.dataObjects
                 .collect {
                     (it as? HandshakeResponse)?.let {
                         Device(
@@ -195,12 +185,7 @@ class RemoteDeviceImpl(
     }
 
     override fun start() {
-        scope.launch(Dispatchers.Default) {
-            val newConnection = connectionProvider.getConnection()
-            connection = newConnection
-            connection.start()
-            connectionFlow.emit(newConnection)
-        }
+        connection.start()
     }
 
     override fun close() {
@@ -239,8 +224,4 @@ class RemoteDeviceImpl(
                 ?: DeviceParameter(p.id, value = value)
         }
     )
-
-    interface ConnectionProvider {
-        suspend fun getConnection(): DeviceConnection
-    }
 }

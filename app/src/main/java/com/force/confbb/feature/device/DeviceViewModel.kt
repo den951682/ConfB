@@ -8,7 +8,6 @@ import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.parsing.ConfParser
 import com.force.confbb.serialization.ConfSerializer
 import com.force.connection.connection.BluetoothDeviceConnection
-import com.force.connection.connection.DeviceConnection
 import com.force.connection.device.CifferDataReaderWriter
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
@@ -18,11 +17,9 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @HiltViewModel(assistedFactory = DeviceViewModel.Factory::class)
 class DeviceViewModel @AssistedInject constructor(
@@ -31,30 +28,29 @@ class DeviceViewModel @AssistedInject constructor(
     private val savedDevicesRepository: SavedDevicesRepository,
 ) : ViewModel() {
 
+
     val remoteDevice = RemoteDeviceImpl(
         scope = viewModelScope,
-        connectionProvider = object : RemoteDeviceImpl.ConnectionProvider {
-            override suspend fun getConnection(): DeviceConnection {
-                val dataReaderWriter = CifferDataReaderWriter(
-                    serializer = ConfSerializer(),
-                    parser = ConfParser(),
-                    cryptoProducer = object : CifferDataReaderWriter.CryptoProducer {
-                        private lateinit var crypto: CryptoManager
-                        override fun init() {
-                            crypto = CryptoManager(passphrase = passPhrase.value.trim())
-                        }
+        connection = run {
+            val dataReaderWriter = CifferDataReaderWriter(
+                serializer = ConfSerializer(),
+                parser = ConfParser(),
+                cryptoProducer = object : CifferDataReaderWriter.CryptoProducer {
+                    private lateinit var crypto: CryptoManager
+                    override fun init() {
+                        crypto = CryptoManager(passphrase = passPhrase.value.trim())
+                    }
 
-                        override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
+                    override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
 
-                        override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
-                    },
-                )
-                return factory.create(
-                    deviceAddress = deviceAddress,
-                    scope = viewModelScope,
-                    dataReaderWriter = dataReaderWriter
-                )
-            }
+                    override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
+                },
+            )
+            factory.create(
+                deviceAddress = deviceAddress,
+                scope = viewModelScope,
+                dataReaderWriter = dataReaderWriter
+            )
         }
     )
 
