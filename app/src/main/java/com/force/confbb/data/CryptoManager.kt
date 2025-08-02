@@ -15,6 +15,7 @@ class CryptoManager(
     private val key = deriveKeyFromPassphrase(passphrase, byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7))
 
     fun deriveKeyFromPassphrase(passphrase: String, salt: ByteArray): SecretKey {
+        Log.d(TAG, "Crypto on thread ${Thread.currentThread().name}")
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         //todo set iterations to 100000. Встановлено 10000 так як esp32 дуже довго генерує ключ, варто ключ генерувати поза esp32 і передавати на неї через nfc або usb
         val spec = PBEKeySpec(passphrase.toCharArray(), salt, 10000, 256)

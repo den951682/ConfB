@@ -15,12 +15,13 @@ import java.io.OutputStream
 class CifferDataReaderWriter(
     private val serializer: ConfDataObjectOutputStream.Serializer,
     private val parser: ConfDataObjectInputStream.ObjectParser,
-    private val decrypt: (ByteArray) -> ByteArray,
-    private val encrypt: (ByteArray) -> ByteArray
+    private val cryptoProducer: CryptoProducer
 ) : DataReaderWriter {
     private lateinit var confDataObjectInputStream: ConfDataObjectInputStream
     private lateinit var confDataObjectOutputStream: ConfDataObjectOutputStream
     private lateinit var send: (ByteArray) -> Unit
+    private lateinit var decrypt: (ByteArray) -> ByteArray
+    private lateinit var encrypt: (ByteArray) -> ByteArray
 
     override fun init(
         input: InputStream,
@@ -28,6 +29,9 @@ class CifferDataReaderWriter(
         eventStream: OutputStream,
         send: (ByteArray) -> Unit
     ) {
+        cryptoProducer.init()
+        decrypt = cryptoProducer.getDecrypt()
+        encrypt = cryptoProducer.getEncrypt()
         val teeFrameStream = TeeFrameErrorInputStream(input, eventStream)
         val decodeFrameStream = DecodeFrameInputStream(teeFrameStream, decrypt)
         confDataObjectInputStream = ConfDataObjectInputStream(decodeFrameStream, parser, eventStream)
@@ -45,5 +49,11 @@ class CifferDataReaderWriter(
 
     override fun sendDataObject(dataObject: Any) {
         confDataObjectOutputStream.writeDataObject(dataObject)
+    }
+
+    interface CryptoProducer {
+        fun init()
+        fun getDecrypt(): (ByteArray) -> ByteArray
+        fun getEncrypt(): (ByteArray) -> ByteArray
     }
 }

@@ -44,7 +44,7 @@ abstract class AbstractDeviceConnection(
             started = true
             scope.launch {
                 setupConnection()
-                EventObserver(scope, socket.eventsInput, _events::emit).start()
+                runCatching { EventObserver(scope, socket.eventsInput, _events::emit).start() }
             }
         }
     }

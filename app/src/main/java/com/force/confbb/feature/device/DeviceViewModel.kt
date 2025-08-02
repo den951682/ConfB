@@ -35,14 +35,19 @@ class DeviceViewModel @AssistedInject constructor(
         scope = viewModelScope,
         connectionProvider = object : RemoteDeviceImpl.ConnectionProvider {
             override suspend fun getConnection(): DeviceConnection {
-                val crypto = withContext(Dispatchers.Default) {
-                    CryptoManager(passphrase = passPhrase.value.trim())
-                }
                 val dataReaderWriter = CifferDataReaderWriter(
                     serializer = ConfSerializer(),
                     parser = ConfParser(),
-                    encrypt = crypto::encryptDataWhole,
-                    decrypt = crypto::decryptData
+                    cryptoProducer = object : CifferDataReaderWriter.CryptoProducer {
+                        private lateinit var crypto: CryptoManager
+                        override fun init() {
+                            crypto = CryptoManager(passphrase = passPhrase.value.trim())
+                        }
+
+                        override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
+
+                        override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
+                    },
                 )
                 return factory.create(
                     deviceAddress = deviceAddress,
@@ -75,7 +80,7 @@ class DeviceViewModel @AssistedInject constructor(
             remoteDevice.state
                 .filterIsInstance<RemoteDevice.State.Connected>()
                 .collect {
-                    savedDevicesRepository.addDevice(it.device.copy(passphrase= passPhrase.value))
+                    savedDevicesRepository.addDevice(it.device.copy(passphrase = passPhrase.value))
                 }
         }
     }

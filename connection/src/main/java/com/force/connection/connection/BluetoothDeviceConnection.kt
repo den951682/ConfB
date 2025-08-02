@@ -38,19 +38,14 @@ class BluetoothDeviceConnection @AssistedInject constructor(
             release()
         }
         val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-        try {
-            val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
-            btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
-            btSocket.connect()
-            socket = ConnectionSocketIO(
-                btSocket.inputStream,
-                btSocket.outputStream
-            )
-            log(CONN_TAG, "Connected to $deviceAddress")
-        } catch (ex: Exception) {
-            log(CONN_TAG, "Failed to connect to $deviceAddress: ${ex.message}")
-            throw ConfException.SocketException()
-        }
+        val bluetoothDevice = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
+        btSocket = bluetoothDevice.createRfcommSocketToServiceRecord(sppUuid)
+        btSocket.connect()
+        socket = ConnectionSocketIO(
+            btSocket.inputStream,
+            btSocket.outputStream
+        )
+        log(CONN_TAG, "Connected to $deviceAddress")
     }
 
     override fun release() {
