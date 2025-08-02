@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.force.confb.pmodel.Message
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.JoystickVisualizer
@@ -95,10 +94,11 @@ fun Device(
             }
         }
         Column(modifier = Modifier.fillMaxSize()) {
+            val name by viewModel.remoteDevice.name.collectAsStateWithLifecycle("")
             TopAppBar(
                 title = {
                     Text(
-                        text = viewModel.remoteDevice.name.value ?: "",
+                        text = name,
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
