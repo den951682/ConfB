@@ -80,9 +80,10 @@ fun Device(
         }
         LaunchedEffect(Unit) {
             viewModel.remoteDevice.events.collect { event ->
-                when (event.obj) {
-                    is Message -> {
-                        onMessage((event.obj as Message).text.toStringUtf8(), false)
+                when (event) {
+                    is RemoteDevice.Event.Error -> {}
+                    is RemoteDevice.Event.Message -> {
+                        onMessage(event.text, false)
                     }
                 }
             }

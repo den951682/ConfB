@@ -148,10 +148,7 @@ class RemoteDeviceImpl(
                             }
                     }
                     (it as? Message)?.let {
-                        _events.emit(object : RemoteDevice.Event {
-                            override val id: Int = it.id
-                            override val obj: Any = it
-                        })
+                        _events.emit(RemoteDevice.Event.Message(it.text.toStringUtf8()))
                     }
                     converters[it::class]?.let { handler -> handler(it) }
                 }

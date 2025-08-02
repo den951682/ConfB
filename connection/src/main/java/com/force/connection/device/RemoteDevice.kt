@@ -18,11 +18,11 @@ interface RemoteDevice {
         data object Connecting : State()
         data class Connected(val device: Device) : State()
         data object Disconnected : State()
-        data class Error(val error: Throwable) : State()
+        data class Error(val error: Exception) : State()
     }
 
-    interface Event {
-        val id: Int
-        val obj: Any
+    sealed class Event {
+        data class Error(val exception: Exception) : Event()
+        data class Message(val text: String) : Event()
     }
 }
