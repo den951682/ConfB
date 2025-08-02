@@ -3,6 +3,7 @@ package com.force.connection.connection
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.connection.ConnectionEvent
+import com.force.connection.protocol.Protocol
 import com.force.model.ConfException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +38,7 @@ abstract class AbstractDeviceConnection(
 
     protected abstract val socket: SocketIO
 
-    protected abstract val dataReaderWriter: DataReaderWriter
+    protected abstract val protocol: Protocol
 
     override fun start() {
         if (!started) {
@@ -52,9 +53,9 @@ abstract class AbstractDeviceConnection(
     private suspend fun setupConnection() = withContext(Dispatchers.IO) {
         try {
             connect()
-            dataReaderWriter.init(socket.input, socket.output, socket.eventsOutput, ::send)
+            protocol.init(socket.input, socket.output)
             lifecycle.transitionTo(DeviceConnection.State.Connected)
-            ReaderLoop(scope, dataReaderWriter, _dataObjects::emit, lifecycle::handleError).start()
+            ReaderLoop(protocol, _dataObjects::emit, lifecycle::handleError).start()
         } catch (ex: Exception) {
             lifecycle.handleError(ex)
         } finally {
@@ -76,11 +77,13 @@ abstract class AbstractDeviceConnection(
     }
 
     override fun sendDataObject(dataObject: Any) {
-        try {
-            dataReaderWriter.sendDataObject(dataObject)
-            log(CONN_TAG, "Sent data object: ${dataObject::class.simpleName}")
-        } catch (ex: Exception) {
-            lifecycle.handleError(ex)
+        scope.launch(Dispatchers.IO) {
+            try {
+                protocol.send(dataObject)
+                log(CONN_TAG, "Sent data object: ${dataObject::class.simpleName}")
+            } catch (ex: Exception) {
+                lifecycle.handleError(ex)
+            }
         }
     }
 

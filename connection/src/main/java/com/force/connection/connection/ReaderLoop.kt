@@ -1,19 +1,18 @@
 package com.force.connection.connection
 
-import kotlinx.coroutines.CoroutineScope
+import com.force.connection.protocol.Protocol
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 
 class ReaderLoop(
-    private val scope: CoroutineScope,
-    private val reader: DataReaderWriter,
+    private val protocol: Protocol,
     private val onRead: suspend (Any) -> Unit,
     private val onError: suspend (Throwable) -> Unit
 ) {
     suspend fun start() {
         try {
             while (currentCoroutineContext().isActive) {
-                val obj = reader.readDataObject()
+                val obj = protocol.read()
                 onRead(obj)
             }
         } catch (e: Exception) {

@@ -8,9 +8,9 @@ import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.parsing.ConfParser
 import com.force.confbb.serialization.ConfSerializer
 import com.force.connection.connection.BluetoothDeviceConnection
-import com.force.connection.device.CifferDataReaderWriter
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
+import com.force.connection.protocol.PassPhraseAesProtocol
 import com.force.misc.PASS_PHRASE
 import com.force.misc.TAG
 import dagger.assisted.Assisted
@@ -32,10 +32,10 @@ class DeviceViewModel @AssistedInject constructor(
     val remoteDevice = RemoteDeviceImpl(
         scope = viewModelScope,
         connection = run {
-            val dataReaderWriter = CifferDataReaderWriter(
+            val protocol = PassPhraseAesProtocol(
                 serializer = ConfSerializer(),
                 parser = ConfParser(),
-                cryptoProducer = object : CifferDataReaderWriter.CryptoProducer {
+                cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
                     private lateinit var crypto: CryptoManager
                     override fun init() {
                         crypto = CryptoManager(passphrase = passPhrase.value.trim())
@@ -49,7 +49,7 @@ class DeviceViewModel @AssistedInject constructor(
             factory.create(
                 deviceAddress = deviceAddress,
                 scope = viewModelScope,
-                dataReaderWriter = dataReaderWriter
+                protocol = protocol
             )
         }
     )

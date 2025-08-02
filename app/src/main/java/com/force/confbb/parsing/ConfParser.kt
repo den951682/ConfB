@@ -8,12 +8,12 @@ import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confb.pmodel.StringParameter
-import com.force.connection.stream.ConfDataObjectInputStream
+import com.force.connection.protocol.PassPhraseAesProtocol
 import com.force.misc.TAG
 import com.force.model.ConfException
 import com.force.model.DataType
 
-class ConfParser : ConfDataObjectInputStream.ObjectParser {
+class ConfParser : PassPhraseAesProtocol.Parser {
     override fun parse(type: Byte, data: ByteArray): Any {
         val dataType = DataType.fromCode(type)
         return when (dataType) {
@@ -30,6 +30,5 @@ class ConfParser : ConfDataObjectInputStream.ObjectParser {
                 throw ConfException.NotSupportedException()
             }
         }
-
     }
 }

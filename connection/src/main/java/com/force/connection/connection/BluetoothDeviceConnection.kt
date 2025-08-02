@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
-import com.force.model.ConfException
+import com.force.connection.protocol.Protocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -16,7 +16,7 @@ import java.util.UUID
 class BluetoothDeviceConnection @AssistedInject constructor(
     @Assisted private val deviceAddress: String,
     @Assisted private val scope: CoroutineScope,
-    @Assisted override val dataReaderWriter: DataReaderWriter,
+    @Assisted override val protocol: Protocol,
     private val bluetoothManager: BluetoothManager,
 ) : AbstractDeviceConnection(scope) {
 
@@ -58,7 +58,7 @@ class BluetoothDeviceConnection @AssistedInject constructor(
         fun create(
             deviceAddress: String,
             scope: CoroutineScope,
-            dataReaderWriter: DataReaderWriter
+            protocol: Protocol
         ): BluetoothDeviceConnection
     }
 }

@@ -3,7 +3,7 @@ package com.force.confbb.feature.terminal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.connection.connection.BluetoothDeviceConnection
-import com.force.connection.device.PlainDataReaderWriter
+import com.force.connection.protocol.PlainProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -17,7 +17,7 @@ class TerminalViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
     factory: BluetoothDeviceConnection.Factory
 ) : ViewModel() {
-    private val connection = factory.create(deviceAddress, viewModelScope, PlainDataReaderWriter()).also { it.start() }
+    private val connection = factory.create(deviceAddress, viewModelScope, PlainProtocol()).also { it.start() }
 
     private val _items = MutableStateFlow<List<Pair<Boolean, String>>>(listOf())
     val items: StateFlow<List<Pair<Boolean, String>>> = _items
