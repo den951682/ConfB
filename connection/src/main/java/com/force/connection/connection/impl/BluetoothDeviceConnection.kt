@@ -36,7 +36,7 @@ class BluetoothDeviceConnection @AssistedInject constructor(
         )
     )
 
-    override fun connect() {
+    override suspend fun connect() {
         if (::btSocket.isInitialized) {
             ConnectionDefaults.log(CONN_TAG, "Already connected to $deviceAddress, disconnect")
             release()

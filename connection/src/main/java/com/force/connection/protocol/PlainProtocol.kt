@@ -1,7 +1,9 @@
 package com.force.connection.protocol
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -23,8 +25,8 @@ class PlainProtocol() : Protocol {
         return reader.readLine()
     }
 
-    override suspend fun send(data: Any) {
-        val bytes = data.toString().toByteArray()
+    override suspend fun send(data: Any) = withContext(Dispatchers.IO) {
+        val bytes = data.toString().run { if (endsWith("\n")) this else "$this\n" }.toByteArray()
         output.write(bytes)
         output.flush()
     }

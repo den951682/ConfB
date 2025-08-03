@@ -9,7 +9,7 @@ interface DeviceConnection {
     val state: Flow<State>
     val events: Flow<ConnectionEvent>
     fun start()
-    fun sendDataObject(dataObject: Any)
+    suspend fun sendDataObject(dataObject: Any)
     fun close()
 
     sealed class State {

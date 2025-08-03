@@ -4,11 +4,12 @@ import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.connection.ConnectionEvent
 import com.force.connection.protocol.Protocol
-import com.force.model.ConfException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -63,27 +64,18 @@ abstract class AbstractDeviceConnection(
         }
     }
 
-    abstract fun connect()
+    abstract suspend fun connect()
 
-    protected fun send(data: ByteArray) {
-        try {
-            socket.output.write(data)
-            socket.output.flush()
-            log(CONN_TAG, "Sent data, size: ${data.size}")
-        } catch (ex: Exception) {
-            lifecycle.transitionTo(DeviceConnection.State.Error(ConfException.SocketException()))
-            release()
+    override suspend fun sendDataObject(dataObject: Any) = withContext(Dispatchers.IO) {
+        while (isActive && lifecycle.state.value == DeviceConnection.State.Connecting) {
+            log(CONN_TAG, "Waiting for connection to be established before sending data object")
+            delay(100)
         }
-    }
-
-    override fun sendDataObject(dataObject: Any) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                protocol.send(dataObject)
-                log(CONN_TAG, "Sent data object: ${dataObject::class.simpleName}")
-            } catch (ex: Exception) {
-                lifecycle.handleError(ex)
-            }
+        try {
+            protocol.send(dataObject)
+            log(CONN_TAG, "Sent data object: ${dataObject::class.simpleName}")
+        } catch (ex: Exception) {
+            lifecycle.handleError(ex)
         }
     }
 

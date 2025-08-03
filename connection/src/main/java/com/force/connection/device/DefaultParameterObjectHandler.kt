@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class DefaultParameterObjectHandler(
     private val scope: CoroutineScope,
-    private val send: (Any) -> Unit,
+    private val send: suspend (Any) -> Unit,
     private val parameters: MutableMap<Int, DeviceParameter<*>>,
 ) : ParameterObjectHandler {
     private val TEXT_DEBOUNCE = 5000L

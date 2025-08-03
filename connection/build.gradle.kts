@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation)
     implementation(libs.android.protobuf)
+    implementation(libs.org.jmdns)
     ksp(libs.hilt.compiler)
     implementation(project(":model"))
     implementation(project(":misc"))
