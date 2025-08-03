@@ -1,4 +1,4 @@
-package com.force.confbb.di
+package com.force.connection.di
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
