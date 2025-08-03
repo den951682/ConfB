@@ -7,7 +7,7 @@ import com.force.confbb.data.CryptoManager
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.parsing.ConfParser
 import com.force.confbb.serialization.ConfSerializer
-import com.force.connection.connection.impl.BluetoothDeviceConnection
+import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
 import com.force.connection.protocol.PassPhraseAesProtocol
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = DeviceViewModel.Factory::class)
 class DeviceViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
-    private val factory: BluetoothDeviceConnection.Factory,
+    private val factory: BluetoothClientDeviceConnection.Factory,
     private val savedDevicesRepository: SavedDevicesRepository,
 ) : ViewModel() {
 

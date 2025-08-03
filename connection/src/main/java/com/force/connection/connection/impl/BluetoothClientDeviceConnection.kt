@@ -17,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import java.util.UUID
 
-class BluetoothDeviceConnection @AssistedInject constructor(
+class BluetoothClientDeviceConnection @AssistedInject constructor(
     @Assisted private val deviceAddress: String,
     @Assisted private val scope: CoroutineScope,
     @Assisted override val protocol: Protocol,
@@ -63,6 +63,6 @@ class BluetoothDeviceConnection @AssistedInject constructor(
             deviceAddress: String,
             scope: CoroutineScope,
             protocol: Protocol
-        ): BluetoothDeviceConnection
+        ): BluetoothClientDeviceConnection
     }
 }

@@ -2,7 +2,7 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.connection.connection.impl.BluetoothDeviceConnection
+import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.protocol.PlainProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = TerminalViewModel.Factory::class)
 class TerminalViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
-    factory: BluetoothDeviceConnection.Factory
+    factory: BluetoothClientDeviceConnection.Factory
 ) : ViewModel() {
     private val connection = factory.create(deviceAddress, viewModelScope, PlainProtocol()).also { it.start() }
 
@@ -35,8 +35,10 @@ class TerminalViewModel @AssistedInject constructor(
     }
 
     fun send(text: String) {
-        connection.sendDataObject("$text\n")
-        _items.value += false to text
+        viewModelScope.launch {
+            connection.sendDataObject("$text\n")
+            _items.value += false to text
+        }
     }
 
     override fun onCleared() {
