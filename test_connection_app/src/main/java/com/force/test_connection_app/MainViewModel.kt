@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.connection.connection.DeviceConnection
+import com.force.connection.connection.impl.BluetoothServerDeviceConnection
 import com.force.connection.connection.impl.WifiClientDeviceConnection
 import com.force.connection.connection.impl.WifiServerDeviceConnection
 import com.force.connection.protocol.PlainProtocol
@@ -23,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val wifiServerFabric: WifiServerDeviceConnection.Factory,
-    private val wifiClientFabric: WifiClientDeviceConnection.Factory
+    private val wifiClientFabric: WifiClientDeviceConnection.Factory,
+    private val btServerFabric: BluetoothServerDeviceConnection.Factory
 ) : ViewModel() {
     private val _connection = MutableSharedFlow<DeviceConnection>()
 
@@ -58,6 +60,38 @@ class MainViewModel @Inject constructor(
     }
 
     fun startWifiClient() {
+        viewModelScope.launch {
+            val c = wifiClientFabric.create(
+                viewModelScope,
+                PlainProtocol()
+            )
+            c.start()
+            _connection.emit(c)
+            while (isActive) {
+                words.forEach {
+                    c.sendDataObject(it)
+                    delay(500)
+                }
+            }
+        }
+    }
+    fun startBtServer() {
+        viewModelScope.launch {
+            val c = btServerFabric.create(
+                viewModelScope,
+                PlainProtocol()
+            )
+            c.start()
+            _connection.emit(c)
+            var n = 0
+            while (isActive) {
+                c.sendDataObject(n++)
+                delay(1000)
+            }
+        }
+    }
+
+    fun startBtClient() {
         viewModelScope.launch {
             val c = wifiClientFabric.create(
                 viewModelScope,

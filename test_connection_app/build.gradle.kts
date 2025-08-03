@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation)
     implementation(libs.androidx.compose.material3.windowSizeClass)
     implementation(libs.androidx.material3.adaptive.navigation.suite.android)
+    implementation(libs.accompanist.permissions)
     implementation(project(":connection"))
     implementation(project(":model"))
     implementation(project(":misc"))
