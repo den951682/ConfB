@@ -2,7 +2,7 @@ package com.force.confbb.feature.terminal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.connection.connection.BluetoothDeviceConnection
+import com.force.connection.connection.impl.BluetoothDeviceConnection
 import com.force.connection.protocol.PlainProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory

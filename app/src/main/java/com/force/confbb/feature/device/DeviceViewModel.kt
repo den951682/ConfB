@@ -7,7 +7,7 @@ import com.force.confbb.data.CryptoManager
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.parsing.ConfParser
 import com.force.confbb.serialization.ConfSerializer
-import com.force.connection.connection.BluetoothDeviceConnection
+import com.force.connection.connection.impl.BluetoothDeviceConnection
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
 import com.force.connection.protocol.PassPhraseAesProtocol

@@ -27,7 +27,8 @@ interface DeviceConnection {
 
     enum class Type {
         Bluetooth,
-        WiFi,
+        WifiClient,
+        WifiServer,
         Serial,
         Network
     }

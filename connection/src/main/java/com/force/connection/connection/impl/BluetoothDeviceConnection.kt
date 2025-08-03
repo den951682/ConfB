@@ -1,10 +1,14 @@
-package com.force.connection.connection
+package com.force.connection.connection.impl
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import com.force.connection.CONN_TAG
-import com.force.connection.ConnectionDefaults.log
+import com.force.connection.ConnectionDefaults
+import com.force.connection.connection.AbstractDeviceConnection
+import com.force.connection.connection.ConnectionSocketIO
+import com.force.connection.connection.DeviceConnection
+import com.force.connection.connection.SocketIO
 import com.force.connection.protocol.Protocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -34,7 +38,7 @@ class BluetoothDeviceConnection @AssistedInject constructor(
 
     override fun connect() {
         if (::btSocket.isInitialized) {
-            log(CONN_TAG, "Already connected to $deviceAddress, disconnect")
+            ConnectionDefaults.log(CONN_TAG, "Already connected to $deviceAddress, disconnect")
             release()
         }
         val sppUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
@@ -45,7 +49,7 @@ class BluetoothDeviceConnection @AssistedInject constructor(
             btSocket.inputStream,
             btSocket.outputStream
         )
-        log(CONN_TAG, "Connected to $deviceAddress")
+        ConnectionDefaults.log(CONN_TAG, "Connected to $deviceAddress")
     }
 
     override fun release() {
