@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class, ExperimentalPermissionsApi::class)
+    @androidx.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -59,6 +60,8 @@ class MainActivity : ComponentActivity() {
             )
             var requestPermission by remember { mutableStateOf(false) }
             val startForResult = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
+            var showDevicePicker by remember { mutableStateOf(false) }
+
             val connection by viewModel.connection.collectAsStateWithLifecycle(null)
             val connectionInfo by viewModel.connection.flatMapLatest { it.info }.collectAsStateWithLifecycle(null)
             val connectionState by viewModel.connection.flatMapLatest { it.state }.collectAsStateWithLifecycle(
@@ -73,6 +76,14 @@ class MainActivity : ComponentActivity() {
                         permissionState.launchMultiplePermissionRequest()
                         requestPermission = false
                     }
+                }
+                if (showDevicePicker) {
+                    BluetoothDevicePickerDialog(
+                        onDismiss = { showDevicePicker = false },
+                        onDeviceSelected = { selectedDevice ->
+                            viewModel.startBtClient(selectedDevice.address) // ← ваш метод
+                        }
+                    )
                 }
                 Scaffold(
                     topBar = {
@@ -121,7 +132,7 @@ class MainActivity : ComponentActivity() {
                                     if (permissionState.allPermissionsGranted) {
                                         requestPermission = false
                                         if (isBluetoothAvailableAndEnabled()) {
-                                            viewModel.startBtClient()
+                                            showDevicePicker = true
                                         } else {
                                             startForResult.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                                         }

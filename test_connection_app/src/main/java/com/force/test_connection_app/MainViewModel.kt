@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.force.connection.connection.DeviceConnection
+import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.connection.impl.BluetoothServerDeviceConnection
 import com.force.connection.connection.impl.WifiClientDeviceConnection
 import com.force.connection.connection.impl.WifiServerDeviceConnection
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val wifiServerFabric: WifiServerDeviceConnection.Factory,
     private val wifiClientFabric: WifiClientDeviceConnection.Factory,
-    private val btServerFabric: BluetoothServerDeviceConnection.Factory
+    private val btServerFabric: BluetoothServerDeviceConnection.Factory,
+    private val btClientFabric: BluetoothClientDeviceConnection.Factory
 ) : ViewModel() {
     private val _connection = MutableSharedFlow<DeviceConnection>()
 
@@ -75,6 +77,7 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
     fun startBtServer() {
         viewModelScope.launch {
             val c = btServerFabric.create(
@@ -91,9 +94,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun startBtClient() {
+    fun startBtClient(address: String) {
         viewModelScope.launch {
-            val c = wifiClientFabric.create(
+            val c = btClientFabric.create(
+                address,
                 viewModelScope,
                 PlainProtocol()
             )
