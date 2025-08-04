@@ -1,7 +1,6 @@
-package com.force.confbb.data
+package com.force.crypto
 
-import android.util.Log
-import com.force.misc.TAG
+import com.force.crypto.CryptoDefaults.log
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -15,12 +14,12 @@ class CryptoManager(
     private val key = deriveKeyFromPassphrase(passphrase, byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7))
 
     fun deriveKeyFromPassphrase(passphrase: String, salt: ByteArray): SecretKey {
-        Log.d(TAG, "Crypto on thread ${Thread.currentThread().name}")
+        log(CONN_TAG, "Crypto on thread ${Thread.currentThread().name}")
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         //todo set iterations to 100000. Встановлено 10000 так як esp32 дуже довго генерує ключ, варто ключ генерувати поза esp32 і передавати на неї через nfc або usb
         val spec = PBEKeySpec(passphrase.toCharArray(), salt, 10000, 256)
         val tmp = factory.generateSecret(spec)
-        Log.d(TAG, "Pass ${passphrase}:  generated key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
+        log(CONN_TAG, "Pass ${passphrase}:  generated key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
         return SecretKeySpec(tmp.encoded, "AES")
     }
 
@@ -56,6 +55,3 @@ class CryptoManager(
         return decrypted
     }
 }
-
-//todo add support for salt
-//todo after generation of key, encrypt it with other key and save it to db. Don`t save passphrase. This another key is saved in Cryptostorage with alias

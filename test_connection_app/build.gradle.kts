@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation.suite.android)
     implementation(libs.accompanist.permissions)
     implementation(project(":connection"))
+    implementation(project(":crypto"))
     implementation(project(":model"))
     implementation(project(":misc"))
     ksp(libs.hilt.compiler)

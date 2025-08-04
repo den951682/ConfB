@@ -32,6 +32,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 
 @AndroidEntryPoint
@@ -63,11 +64,11 @@ class MainActivity : ComponentActivity() {
             var showDevicePicker by remember { mutableStateOf(false) }
 
             val connection by viewModel.connection.collectAsStateWithLifecycle(null)
-            val connectionInfo by viewModel.connection.flatMapLatest { it.info }.collectAsStateWithLifecycle(null)
-            val connectionState by viewModel.connection.flatMapLatest { it.state }.collectAsStateWithLifecycle(
+            val connectionInfo by viewModel.connection.filterNotNull().flatMapLatest { it.info }.collectAsStateWithLifecycle(null)
+            val connectionState by viewModel.connection.filterNotNull().flatMapLatest { it.state }.collectAsStateWithLifecycle(
                 DeviceConnection.State.Connecting
             )
-            val connectionData by viewModel.connection.flatMapLatest { it.dataObjects }.collectAsStateWithLifecycle(
+            val connectionData by viewModel.connection.filterNotNull().flatMapLatest { it.dataObjects }.collectAsStateWithLifecycle(
                 ""
             )
             MaterialTheme {
@@ -144,6 +145,11 @@ class MainActivity : ComponentActivity() {
                                 Text("Bluetooth Client ")
                             }
                         } else {
+                            Button(
+                                onClick = { viewModel.stopConnection() }
+                            ) {
+                                Text("Disconnect")
+                            }
                             val stateText = if (connectionState is DeviceConnection.State.Error) {
                                 "ERROR: " + (connectionState as DeviceConnection.State.Error).error.message
                             } else {

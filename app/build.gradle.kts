@@ -122,6 +122,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation(project(":connection"))
     implementation(project(":model"))
+    implementation(project(":crypto"))
     implementation(project(":misc"))
     ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)

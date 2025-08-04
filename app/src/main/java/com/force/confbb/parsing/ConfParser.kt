@@ -14,20 +14,22 @@ import com.force.model.ConfException
 import com.force.model.DataType
 
 class ConfParser : PassPhraseAesProtocol.Parser {
-    override fun parse(type: Byte, data: ByteArray): Any {
-        val dataType = DataType.fromCode(type)
+    override fun parse(data: ByteArray): Any {
+        val dataTypeCode = data[0]
+        val dataToParse = data.drop(1).toByteArray()
+        val dataType = DataType.fromCode(dataTypeCode)
         return when (dataType) {
-            is DataType.HandshakeResponse -> HandshakeResponse.parseFrom(data)
-            is DataType.ParameterInfo -> ParameterInfo.parseFrom(data)
-            is DataType.TypeInt -> IntParameter.parseFrom(data)
-            is DataType.TypeFloat -> FloatParameter.parseFrom(data)
-            is DataType.TypeString -> StringParameter.parseFrom(data)
-            is DataType.TypeBoolean -> BooleanParameter.parseFrom(data)
-            is DataType.TypeMessage -> Message.parseFrom(data)
+            is DataType.HandshakeResponse -> HandshakeResponse.parseFrom(dataToParse)
+            is DataType.ParameterInfo -> ParameterInfo.parseFrom(dataToParse)
+            is DataType.TypeInt -> IntParameter.parseFrom(dataToParse)
+            is DataType.TypeFloat -> FloatParameter.parseFrom(dataToParse)
+            is DataType.TypeString -> StringParameter.parseFrom(dataToParse)
+            is DataType.TypeBoolean -> BooleanParameter.parseFrom(dataToParse)
+            is DataType.TypeMessage -> Message.parseFrom(dataToParse)
 
             else -> {
-                Log.d(TAG, "Unhandled received data type: $type")
-                throw ConfException.NotSupportedException()
+                Log.d(TAG, "Unhandled received data type: $dataTypeCode")
+                throw ConfException.NotSupportedException("Unhandled received data type: $dataTypeCode")
             }
         }
     }

@@ -13,7 +13,7 @@ package com.force.model
 sealed class ConfException(message: String, val isCritical: Boolean = true) : Exception(message) {
     class CifferTextTooShortException : ConfException("Шифртекст закоротокий")
     class DecryptException : ConfException("Помилка розшифровки, можливо, не сходяться пассфрази")
-    class NotSupportedException : ConfException("Операція не підтримується", false)
+    class NotSupportedException(message: String) : ConfException(message, false)
     class ProtoDecodeException : ConfException("Помилка декодування протоколу, можливо, не сходяться версії")
     class ProtoEncodeException : ConfException("Помилка кодування протоколу")
     class EncodeException : ConfException("Помилка зашифрування")
@@ -25,7 +25,7 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
             return when (code) {
                 0x01 -> CifferTextTooShortException()
                 0x02 -> DecryptException()
-                0x03 -> NotSupportedException()
+                0x03 -> NotSupportedException("Операція не підтримується")
                 0x04 -> ProtoDecodeException()
                 0x05 -> ProtoEncodeException()
                 0x06 -> EncodeException()

@@ -3,7 +3,6 @@ package com.force.confbb.feature.device
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.force.confbb.data.CryptoManager
 import com.force.confbb.data.SavedDevicesRepository
 import com.force.confbb.parsing.ConfParser
 import com.force.confbb.serialization.ConfSerializer
@@ -11,6 +10,7 @@ import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
 import com.force.connection.protocol.PassPhraseAesProtocol
+import com.force.crypto.CryptoManager
 import com.force.misc.PASS_PHRASE
 import com.force.misc.TAG
 import dagger.assisted.Assisted

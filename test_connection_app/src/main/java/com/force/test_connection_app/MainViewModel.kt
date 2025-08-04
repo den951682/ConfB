@@ -8,13 +8,20 @@ import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.connection.impl.BluetoothServerDeviceConnection
 import com.force.connection.connection.impl.WifiClientDeviceConnection
 import com.force.connection.connection.impl.WifiServerDeviceConnection
+import com.force.connection.protocol.PassPhraseAesProtocol
 import com.force.connection.protocol.PlainProtocol
+import com.force.crypto.CryptoManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
@@ -29,13 +36,49 @@ class MainViewModel @Inject constructor(
     private val btServerFabric: BluetoothServerDeviceConnection.Factory,
     private val btClientFabric: BluetoothClientDeviceConnection.Factory
 ) : ViewModel() {
-    private val _connection = MutableSharedFlow<DeviceConnection>()
+    private val _connection = MutableStateFlow<DeviceConnection?>(null)
 
-    val connection: Flow<DeviceConnection> = _connection
+    val connection: Flow<DeviceConnection?> = _connection
+    private var sendJob: Job? = null
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            connection.filterNotNull().flatMapLatest {
+                it.events
+            }.filterIsInstance<DeviceConnection.State.Error>()
+                .onEach { sendJob?.cancel() }
+                .collect()
+        }
+    }
+
+    val passPhraseAesProtocol by lazy {
+        PassPhraseAesProtocol(
+            serializer = object : PassPhraseAesProtocol.Serializer {
+                override fun serialize(data: Any): ByteArray {
+                    return data.toString().toByteArray()
+                }
+            },
+            parser = object : PassPhraseAesProtocol.Parser {
+                override fun parse(data: ByteArray): String {
+                    return String(data)
+                }
+            },
+            cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
+                private lateinit var crypto: CryptoManager
+                override fun init() {
+                    crypto = CryptoManager(passphrase = "PASSS")
+                }
+
+                override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
+
+                override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
+            }
+        )
+    }
 
     init {
         viewModelScope.launch {
-            connection.flatMapLatest { it.state }
+            connection.filterNotNull().flatMapLatest { it.state }
                 .onEach { state ->
                     if (state is DeviceConnection.State.Error) {
                         Log.d(TAG, "Connection error: ${state.error.message}")
@@ -46,10 +89,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun startWifiServer() {
-        viewModelScope.launch {
+        sendJob?.cancel()
+        sendJob = viewModelScope.launchCancellable({
             val c = wifiServerFabric.create(
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)
@@ -58,14 +102,19 @@ class MainViewModel @Inject constructor(
                 c.sendDataObject(n++)
                 delay(1000)
             }
+        }) {
+            _connection.value?.close()
+            Log.d(TAG, "Connection closed")
+            _connection.emit(null)
         }
     }
 
     fun startWifiClient() {
-        viewModelScope.launch {
+        sendJob?.cancel()
+        sendJob = viewModelScope.launchCancellable({
             val c = wifiClientFabric.create(
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)
@@ -75,11 +124,16 @@ class MainViewModel @Inject constructor(
                     delay(500)
                 }
             }
+        }) {
+            _connection.value?.close()
+            Log.d(TAG, "Connection closed")
+            _connection.emit(null)
         }
     }
 
     fun startBtServer() {
-        viewModelScope.launch {
+        sendJob?.cancel()
+        sendJob = viewModelScope.launchCancellable({
             val c = btServerFabric.create(
                 viewModelScope,
                 PlainProtocol()
@@ -87,15 +141,20 @@ class MainViewModel @Inject constructor(
             c.start()
             _connection.emit(c)
             var n = 0
-            while (isActive) {
+            while (isActive && _connection.value != null) {
                 c.sendDataObject(n++)
                 delay(1000)
             }
+        }) {
+            _connection.value?.close()
+            Log.d(TAG, "Connection closed")
+            _connection.emit(null)
         }
     }
 
     fun startBtClient(address: String) {
-        viewModelScope.launch {
+        sendJob?.cancel()
+        sendJob = viewModelScope.launchCancellable({
             val c = btClientFabric.create(
                 address,
                 viewModelScope,
@@ -105,10 +164,34 @@ class MainViewModel @Inject constructor(
             _connection.emit(c)
             while (isActive) {
                 words.forEach {
-                    c.sendDataObject(it)
-                    delay(500)
+                    if (_connection.value == null) {
+                        c.sendDataObject(it)
+                        delay(500)
+                    }
                 }
             }
+        }) {
+            _connection.value?.close()
+            Log.d(TAG, "Connection closed")
+            _connection.emit(null)
         }
+    }
+
+    fun stopConnection() {
+        sendJob?.cancel()
+    }
+
+    fun CoroutineScope.launchCancellable(
+        block: suspend CoroutineScope.() -> Unit,
+        onCancel: suspend () -> Unit
+    ): Job {
+        val job = launch {
+            try {
+                block()
+            } finally {
+                if (!isActive) onCancel()
+            }
+        }
+        return job
     }
 }
