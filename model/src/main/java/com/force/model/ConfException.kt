@@ -18,6 +18,7 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
     class ProtoEncodeException : ConfException("Помилка кодування протоколу")
     class EncodeException : ConfException("Помилка зашифрування")
     class SocketException : ConfException("З'єднання розірвано, можливо, пристрій вимкнено", true)
+    class DisconnectException : ConfException("З'єднання закрито", true)
     class UnknownException(message: String) : ConfException("Невідома помилка: $message", true)
 
     companion object {
@@ -29,6 +30,8 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
                 0x04 -> ProtoDecodeException()
                 0x05 -> ProtoEncodeException()
                 0x06 -> EncodeException()
+                0x07 -> SocketException()
+                0x08 -> DisconnectException()
                 else -> UnknownException("")
             }
         }
@@ -40,6 +43,8 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
             is ProtoDecodeException -> 0x04
             is ProtoEncodeException -> 0x05
             is EncodeException -> 0x06
+            is SocketException -> 0x07
+            is DisconnectException -> 0x08
             else -> -1 // Unknown error, no code defined
         }
     }

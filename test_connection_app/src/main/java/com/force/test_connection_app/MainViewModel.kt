@@ -66,13 +66,14 @@ class MainViewModel @Inject constructor(
             cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
                 private lateinit var crypto: CryptoManager
                 override fun init() {
-                    crypto = CryptoManager(passphrase = "PASSS")
+                    crypto = CryptoManager(passphrase = "PASS")
                 }
 
                 override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
 
                 override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
-            }
+            },
+            header = "HEADER\n".toByteArray()
         )
     }
 
@@ -99,12 +100,16 @@ class MainViewModel @Inject constructor(
             _connection.emit(c)
             var n = 0
             while (isActive) {
-                c.sendDataObject(n++)
+                try {
+                    c.sendDataObject(n++)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Error sending data object", ex)
+                }
                 delay(1000)
             }
         }) {
             _connection.value?.close()
-            Log.d(TAG, "Connection closed")
+            Log.e(TAG, "Connection closed")
             _connection.emit(null)
         }
     }
@@ -120,13 +125,17 @@ class MainViewModel @Inject constructor(
             _connection.emit(c)
             while (isActive) {
                 words.forEach {
-                    c.sendDataObject(it)
+                    try {
+                        c.sendDataObject(it)
+                    } catch (ex: Exception) {
+                        Log.e(TAG, "Error sending data object", ex)
+                    }
                     delay(500)
                 }
             }
         }) {
             _connection.value?.close()
-            Log.d(TAG, "Connection closed")
+            Log.e(TAG, "Connection closed")
             _connection.emit(null)
         }
     }
@@ -142,12 +151,16 @@ class MainViewModel @Inject constructor(
             _connection.emit(c)
             var n = 0
             while (isActive && _connection.value != null) {
-                c.sendDataObject(n++)
+                try {
+                    c.sendDataObject(n++)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Error sending data object", ex)
+                }
                 delay(1000)
             }
         }) {
             _connection.value?.close()
-            Log.d(TAG, "Connection closed")
+            Log.e(TAG, "Connection closed")
             _connection.emit(null)
         }
     }
@@ -165,14 +178,18 @@ class MainViewModel @Inject constructor(
             while (isActive) {
                 words.forEach {
                     if (_connection.value == null) {
-                        c.sendDataObject(it)
+                        try {
+                            c.sendDataObject(it)
+                        } catch (ex: Exception) {
+                            Log.e(TAG, "Error sending data object", ex)
+                        }
                         delay(500)
                     }
                 }
             }
         }) {
             _connection.value?.close()
-            Log.d(TAG, "Connection closed")
+            Log.e(TAG, "Connection closed")
             _connection.emit(null)
         }
     }

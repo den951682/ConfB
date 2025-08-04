@@ -4,8 +4,10 @@ import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.connection.ConnectionEvent
 import com.force.connection.protocol.Protocol
+import com.force.model.ConfException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,10 +43,12 @@ abstract class AbstractDeviceConnection(
 
     protected abstract val protocol: Protocol
 
+    private var job: Job? = null
+
     override fun start() {
         if (!started) {
             started = true
-            scope.launch {
+            job = scope.launch {
                 setupConnection()
                 runCatching { EventObserver(scope, socket.eventsInput, _events::emit).start() }
             }
@@ -56,6 +60,8 @@ abstract class AbstractDeviceConnection(
             connect()
             protocol.init(socket.input, socket.output)
             lifecycle.transitionTo(DeviceConnection.State.Connected)
+            log(CONN_TAG, "Connection established with protocol: ${protocol::class.simpleName}")
+            log(CONN_TAG, "Socket info: ${socket.input}  ${socket.output}")
             ReaderLoop(protocol, _dataObjects::emit, lifecycle::handleError).start()
         } catch (ex: Exception) {
             lifecycle.handleError(ex)
@@ -68,8 +74,11 @@ abstract class AbstractDeviceConnection(
 
     override suspend fun sendDataObject(dataObject: Any) = withContext(Dispatchers.IO) {
         while (isActive && lifecycle.state.value == DeviceConnection.State.Connecting) {
-            log(CONN_TAG, "Waiting for connection to be established before sending data object")
             delay(100)
+        }
+        if (!isActive || lifecycle.state.value !is DeviceConnection.State.Connected) {
+            log(CONN_TAG, "Cannot send data object: connection is not active or not connected")
+            throw ConfException.DisconnectException()
         }
         try {
             protocol.send(dataObject)
@@ -79,17 +88,16 @@ abstract class AbstractDeviceConnection(
         }
     }
 
+    //todo send in output aka closing token
     override fun close() {
-        release()
+        log(CONN_TAG, "Closing connection")
         lifecycle.transitionTo(DeviceConnection.State.Disconnected)
+        job?.cancel()
+        release()
     }
 
     protected open fun release() {
-        try {
-            log(CONN_TAG, "Releasing connection")
-            socket.close()
-        } catch (ex: Exception) {
-            log(CONN_TAG, "Failed to close socket: ${ex.message}")
-        }
+        log(CONN_TAG, "Releasing connection")
+        runCatching { socket.close() }
     }
 }

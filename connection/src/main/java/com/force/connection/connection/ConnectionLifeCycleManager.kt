@@ -18,12 +18,15 @@ class ConnectionLifecycleManager {
     }
 
     fun handleError(ex: Throwable) {
-        val state = when (ex) {
-            is CancellationException -> DeviceConnection.State.Disconnected
-            is IOException -> DeviceConnection.State.Error(ConfException.SocketException())
-            is ConfException -> DeviceConnection.State.Error(ex)
-            else -> DeviceConnection.State.Error(ConfException.UnknownException(ex.message ?: ""))
+        if (state.value !is DeviceConnection.State.Error && state.value !is DeviceConnection.State.Disconnected) {
+            log(CONN_TAG, "Lifecycle Connection error: ${ex.message}")
+            val state = when (ex) {
+                is CancellationException -> DeviceConnection.State.Disconnected
+                is IOException -> DeviceConnection.State.Error(ConfException.SocketException())
+                is ConfException -> DeviceConnection.State.Error(ex)
+                else -> DeviceConnection.State.Error(ConfException.UnknownException(ex.message ?: ""))
+            }
+            transitionTo(state)
         }
-        transitionTo(state)
     }
 }

@@ -29,6 +29,9 @@ class PassPhraseAesProtocol(
     private var handshakeIsReceived = false
 
     override suspend fun init(input: InputStream, output: OutputStream) {
+        log(CONN_TAG, "Initializing PassPhraseAesProtocol {$input} {$output}")
+        headerIsRead = false
+        handshakeIsReceived = false
         this.input = input
         this.output = output
         cryptoProducer.init()
