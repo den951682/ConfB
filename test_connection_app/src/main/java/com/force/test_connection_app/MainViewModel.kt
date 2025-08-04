@@ -94,7 +94,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiServerFabric.create(
                 viewModelScope,
-                passPhraseAesProtocol
+                PlainProtocol()
             )
             c.start()
             _connection.emit(c)
@@ -119,7 +119,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiClientFabric.create(
                 viewModelScope,
-                passPhraseAesProtocol
+                PlainProtocol()
             )
             c.start()
             _connection.emit(c)
@@ -145,7 +145,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = btServerFabric.create(
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)
@@ -171,13 +171,13 @@ class MainViewModel @Inject constructor(
             val c = btClientFabric.create(
                 address,
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)
             while (isActive) {
                 words.forEach {
-                    if (_connection.value == null) {
+                    if (_connection.value != null) {
                         try {
                             c.sendDataObject(it)
                         } catch (ex: Exception) {
@@ -202,7 +202,7 @@ class MainViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
         onCancel: suspend () -> Unit
     ): Job {
-        val job = launch {
+        val job = launch(Dispatchers.IO) {
             try {
                 block()
             } finally {
