@@ -56,13 +56,13 @@ class DeviceViewModel @AssistedInject constructor(
     )
 
     val passPhrase = MutableStateFlow(PASS_PHRASE)
-    val isPassPhraseSet = MutableStateFlow<Boolean>(false)
+    val isPassPhraseSet = MutableStateFlow<Boolean?>(null)
 
     init {
         Log.d(TAG, "Creating ViewModel for device: $deviceAddress $this")
         viewModelScope.launch {
             getExistedPassphrase()
-            isPassPhraseSet.first { it }
+            isPassPhraseSet.first { it == true }
             remoteDevice.start()
         }
         viewModelScope.launch {
