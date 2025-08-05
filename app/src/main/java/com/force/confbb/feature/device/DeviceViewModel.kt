@@ -45,6 +45,7 @@ class DeviceViewModel @AssistedInject constructor(
 
                     override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
                 },
+                header = "guard\n".toByteArray(Charsets.UTF_8)
             )
             factory.create(
                 deviceAddress = deviceAddress,

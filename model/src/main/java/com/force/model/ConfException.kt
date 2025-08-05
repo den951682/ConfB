@@ -32,7 +32,7 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
                 0x06 -> EncodeException()
                 0x07 -> SocketException()
                 0x08 -> DisconnectException()
-                else -> UnknownException("")
+                else -> UnknownException("code: $code")
             }
         }
 

@@ -3,7 +3,6 @@ package com.force.connection.device
 import androidx.compose.runtime.mutableStateMapOf
 import com.force.confb.pmodel.BooleanParameter
 import com.force.confb.pmodel.FloatParameter
-import com.force.confb.pmodel.HandshakeResponse
 import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
@@ -18,12 +17,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,23 +31,19 @@ class RemoteDeviceImpl(
 
     override val address = connection.info.map { info -> info.address }
 
-    private val _state = MutableStateFlow<RemoteDevice.State>(RemoteDevice.State.Connecting)
-
-    override val state = merge(
-        _state,
-        connection.state
-            .filter { it !is DeviceConnection.State.Connected }
-            .map {
-                when (it) {
-                    is DeviceConnection.State.Connecting -> RemoteDevice.State.Connecting
-                    is DeviceConnection.State.Disconnected -> RemoteDevice.State.Disconnected
-                    is DeviceConnection.State.Error -> RemoteDevice.State.Error(it.error)
-                    is DeviceConnection.State.Connected -> throw IllegalStateException(
-                        "Unexpected state: DeviceConnection.State.Connected should not be emitted here"
-                    )
+    override val state = connection.state
+        .map {
+            when (it) {
+                is DeviceConnection.State.Connecting -> RemoteDevice.State.Connecting
+                is DeviceConnection.State.Disconnected -> RemoteDevice.State.Disconnected
+                is DeviceConnection.State.Error -> RemoteDevice.State.Error(it.error)
+                is DeviceConnection.State.Connected -> {
+                    val device = buildDevice()
+                    log(CONN_TAG, "Device connected: ${device.name} at ${device.address}")
+                    RemoteDevice.State.Connected(device)
                 }
             }
-    )
+        }
 
     private val _events = MutableSharedFlow<RemoteDevice.Event>(
         replay = 0,
@@ -92,11 +84,9 @@ class RemoteDeviceImpl(
     }
 
     private suspend fun observeIncomingData() {
-        //todo add error handling
         connection.dataObjects
             .collect {
                 when (it) {
-                    is HandshakeResponse -> handleHandshake()
                     is ParameterInfo -> parameterObjectHandler.handleInfo(it)
                     is IntParameter,
                     is FloatParameter,
@@ -106,12 +96,6 @@ class RemoteDeviceImpl(
                     is Message -> _events.emit(RemoteDevice.Event.Message(it.text.toStringUtf8()))
                 }
             }
-    }
-
-    private suspend fun handleHandshake() {
-        val device = buildDevice()
-        _state.value = RemoteDevice.State.Connected(device)
-        log(CONN_TAG, "Device connected: ${device.name} at ${device.address}")
     }
 
     private suspend fun buildDevice(): Device {

@@ -4,6 +4,7 @@ import com.force.confb.pmodel.HandshakeRequest
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.model.ConfException
+import com.force.model.DataType
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,6 @@ class PassPhraseAesProtocol(
         cryptoProducer.init()
         encrypt = cryptoProducer.getEncrypt()
         decrypt = cryptoProducer.getDecrypt()
-        //val guardText = "guard\n"
         if (header != null) {
             output.write(header.size)
             output.write(header)
@@ -48,7 +48,8 @@ class PassPhraseAesProtocol(
         }
         log(CONN_TAG, "Sending handshake")
         val handShake = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
-        val encrypted = encrypt(handShake)
+        //додано DataType.HandshakeRequest.code для більш простої реалізації протоколу на стороні embedded
+        val encrypted = encrypt(byteArrayOf(DataType.HandshakeRequest.code) + handShake)
         val toSend = byteArrayOf(encrypted.size.toByte()) + encrypted
         output.write(toSend)
         output.flush()
@@ -104,7 +105,7 @@ class PassPhraseAesProtocol(
         return try {
             if (!handshakeIsReceived) {
                 try {
-                    return HandshakeRequest.parseFrom(frame)
+                    return HandshakeRequest.parseFrom(frame.drop(1).toByteArray())
                 } catch (ex: Exception) {
                 }
             }
