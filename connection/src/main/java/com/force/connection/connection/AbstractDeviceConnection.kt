@@ -59,7 +59,10 @@ abstract class AbstractDeviceConnection(
         try {
             connect()
             protocol.init(socket.input, socket.output)
-            lifecycle.transitionTo(DeviceConnection.State.Connected)
+            launch {
+                protocol.awaitReady()
+                lifecycle.transitionTo(DeviceConnection.State.Connected)
+            }
             log(CONN_TAG, "Connection established with protocol: ${protocol::class.simpleName}")
             log(CONN_TAG, "Socket info: ${socket.input}  ${socket.output}")
             ReaderLoop(protocol, _dataObjects::emit, lifecycle::handleError).start()

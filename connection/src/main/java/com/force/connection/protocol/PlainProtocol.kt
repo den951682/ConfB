@@ -1,8 +1,8 @@
 package com.force.connection.protocol
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStream
@@ -10,7 +10,11 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 
 class PlainProtocol() : Protocol {
-    override val events: Flow<Any> = flowOf()
+    override val events = MutableSharedFlow<ProtocolEvent>(
+        replay = 8,
+        extraBufferCapacity = 8,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private lateinit var input: InputStream
     private lateinit var output: OutputStream
     private lateinit var reader: BufferedReader
@@ -19,6 +23,7 @@ class PlainProtocol() : Protocol {
         this.input = input
         this.output = output
         reader = BufferedReader(InputStreamReader(input))
+        events.emit(ProtocolEvent.Ready)
     }
 
     override suspend fun receive(): String {

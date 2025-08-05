@@ -5,6 +5,7 @@ import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.model.ConfException
 import com.force.model.DataType
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -19,15 +20,19 @@ class PassPhraseAesProtocol(
     private val cryptoProducer: CryptoProducer,
     private val header: ByteArray? = null,
 ) : Protocol {
-    override val events = MutableSharedFlow<Any>()
+    override val events = MutableSharedFlow<ProtocolEvent>(
+        replay = 8,
+        extraBufferCapacity = 8,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private lateinit var input: InputStream
     private lateinit var output: OutputStream
     private lateinit var encrypt: (ByteArray) -> ByteArray
     private lateinit var decrypt: (ByteArray) -> ByteArray
-    private val initialized = MutableStateFlow<Boolean>(false)
 
     private var headerIsRead = false
     private var handshakeIsReceived = false
+    private var errorCount = 0
 
     override suspend fun init(input: InputStream, output: OutputStream) {
         log(CONN_TAG, "Initializing PassPhraseAesProtocol {$input} {$output}")
@@ -55,7 +60,7 @@ class PassPhraseAesProtocol(
         output.flush()
     }
 
-    override suspend fun receive(): Any {
+    override suspend fun receive(): Any? {
         if (!headerIsRead) {
             readHeader()
             headerIsRead = true
@@ -67,7 +72,7 @@ class PassPhraseAesProtocol(
             if (obj is HandshakeRequest) {
                 handshakeIsReceived = true
                 log(CONN_TAG, "Handshake received: ${obj.text}")
-                initialized.emit(true)
+                events.emit(ProtocolEvent.Ready)
                 return receive()
             } else {
                 log(CONN_TAG, "Unexpected object received: $obj")
@@ -78,11 +83,12 @@ class PassPhraseAesProtocol(
     }
 
     override suspend fun send(data: Any) {
-        if (!initialized.value) {
-            initialized.first { it }
-        }
+        awaitReady()
         val bytes = serializer.serialize(data)
         val encrypted = encrypt(bytes)
+        if (encrypted.size > 255) {
+            throw ConfException.DataToLarge("Encrypt")
+        }
         val toSend = byteArrayOf(encrypted.size.toByte()) + encrypted
         output.write(toSend)
         output.flush()
@@ -97,21 +103,24 @@ class PassPhraseAesProtocol(
             val headerBytes = ByteArray(size)
             readFully(headerBytes)
             log(CONN_TAG, "Received header: ${headerBytes.decodeToString()}")
-            events.emit(headerBytes)
+            events.emit(ProtocolEvent.Header(headerBytes))
         }
     }
 
-    private suspend fun parseFrame(frame: ByteArray): Any {
+    private suspend fun parseFrame(frame: ByteArray): Any? {
         return try {
             if (!handshakeIsReceived) {
                 try {
+                    //відкидаємо перший байт типу який додано для більш простої реалізації протоколу на стороні embedded
                     return HandshakeRequest.parseFrom(frame.drop(1).toByteArray())
                 } catch (ex: Exception) {
+                    log(CONN_TAG, "Failed to parse handshake: ${ex.message}")
                 }
             }
             parser.parse(frame)
         } catch (ex: Exception) {
-            events.emit(ex)
+            events.emit(ProtocolEvent.Error(ex))
+            return null
         }
     }
 
@@ -132,9 +141,15 @@ class PassPhraseAesProtocol(
                         throw error
                     } else {
                         log(CONN_TAG, "Received error code: $b, message: ${error.message}")
-                        events.emit(error)
+                        events.emit(ProtocolEvent.Error(error))
+                    }
+                    if (errorCount > 5) {
+                        log(CONN_TAG, "Too many errors received, resetting connection")
+                        errorCount = 0
+                        throw ConfException.ToManyErrorsExceptions()
                     }
                 } else {
+                    errorCount = 0
                     val frame = ByteArray(b)
                     readFully(frame)
                     return frame

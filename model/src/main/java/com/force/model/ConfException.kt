@@ -19,6 +19,8 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
     class EncodeException : ConfException("Помилка зашифрування")
     class SocketException : ConfException("З'єднання розірвано, можливо, пристрій вимкнено", true)
     class DisconnectException : ConfException("З'єднання закрито", true)
+    class DataToLarge(source: String) : ConfException("$source: дані занадто великі для передачі", false)
+    class ToManyErrorsExceptions() : ConfException("Помилка синхронізації, перезапусти з'єднання", false)
     class UnknownException(message: String) : ConfException("Невідома помилка: $message", true)
 
     companion object {
@@ -32,6 +34,8 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
                 0x06 -> EncodeException()
                 0x07 -> SocketException()
                 0x08 -> DisconnectException()
+                0x09 -> DataToLarge("Unknown source")
+                0x10 -> ToManyErrorsExceptions()
                 else -> UnknownException("code: $code")
             }
         }
@@ -45,6 +49,8 @@ sealed class ConfException(message: String, val isCritical: Boolean = true) : Ex
             is EncodeException -> 0x06
             is SocketException -> 0x07
             is DisconnectException -> 0x08
+            is DataToLarge -> 0x09
+            is ToManyErrorsExceptions -> 0x10
             else -> -1 // Unknown error, no code defined
         }
     }

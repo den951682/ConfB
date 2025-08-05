@@ -10,7 +10,6 @@ import com.force.connection.connection.impl.WifiClientDeviceConnection
 import com.force.connection.connection.impl.WifiServerDeviceConnection
 import com.force.connection.protocol.EcdhAesProtocol
 import com.force.connection.protocol.PassPhraseAesProtocol
-import com.force.connection.protocol.PlainProtocol
 import com.force.connection.protocol.ProtocolParser
 import com.force.connection.protocol.ProtocolSerializer
 import com.force.crypto.CryptoAes
@@ -132,7 +131,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiServerFabric.create(
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)
@@ -157,7 +156,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiClientFabric.create(
                 viewModelScope,
-                PlainProtocol()
+                passPhraseAesProtocol
             )
             c.start()
             _connection.emit(c)

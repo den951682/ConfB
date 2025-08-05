@@ -13,7 +13,7 @@ class ReaderLoop(
         try {
             while (currentCoroutineContext().isActive) {
                 val obj = protocol.receive()
-                onRead(obj)
+                if (obj != null) onRead(obj)
             }
         } catch (e: Exception) {
             onError(e)
