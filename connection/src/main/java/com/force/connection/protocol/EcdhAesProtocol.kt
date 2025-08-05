@@ -1,5 +1,6 @@
 package com.force.connection.protocol
 
+import android.util.Base64
 import com.force.confb.pmodel.HandshakeRequest
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
@@ -13,7 +14,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-class PassPhraseAesProtocol(
+class EcdhAesProtocol(
     private val serializer: ProtocolSerializer,
     private val parser: ProtocolParser,
     private val cryptoProducer: CryptoProducer,
@@ -30,14 +31,12 @@ class PassPhraseAesProtocol(
     private var handshakeIsReceived = false
 
     override suspend fun init(input: InputStream, output: OutputStream) {
-        log(CONN_TAG, "Initializing PassPhraseAesProtocol {$input} {$output}")
+        log(CONN_TAG, "Initializing EcdhAesProtocol {$input} {$output}")
         headerIsRead = false
         handshakeIsReceived = false
         this.input = input
         this.output = output
         cryptoProducer.init()
-        encrypt = cryptoProducer.getEncrypt()
-        decrypt = cryptoProducer.getDecrypt()
         if (header != null) {
             output.write(header.size)
             output.write(header)
@@ -46,11 +45,10 @@ class PassPhraseAesProtocol(
             log(CONN_TAG, "No header")
             output.write(0)
         }
-        log(CONN_TAG, "Sending handshake")
-        val handShake = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
-        //додано DataType.HandshakeRequest.code для більш простої реалізації протоколу на стороні embedded
-        val encrypted = encrypt(byteArrayOf(DataType.HandshakeRequest.code) + handShake)
-        val toSend = byteArrayOf(encrypted.size.toByte()) + encrypted
+        log(CONN_TAG, "Sending handshake with public key")
+        val keyText = Base64.encodeToString(cryptoProducer.getPublic(), Base64.NO_WRAP)
+        val handShake = HandshakeRequest.newBuilder().setText(keyText).build().toByteArray()
+        val toSend = byteArrayOf((handShake.size + 1).toByte(), DataType.HandshakeRequest.code) + handShake
         output.write(toSend)
         output.flush()
     }
@@ -61,12 +59,19 @@ class PassPhraseAesProtocol(
             headerIsRead = true
         }
         val encryptedFrame = readEncryptedFrame()
-        val decryptedFrame = decryptFrame(encryptedFrame)
+        val decryptedFrame = if (handshakeIsReceived) {
+            decryptFrame(encryptedFrame)
+        } else {
+            encryptedFrame
+        }
         val obj = parseFrame(decryptedFrame)
         if (!handshakeIsReceived) {
             if (obj is HandshakeRequest) {
                 handshakeIsReceived = true
-                log(CONN_TAG, "Handshake received: ${obj.text}")
+                log(CONN_TAG, "Handshake received with key")
+                cryptoProducer.applyOtherPublic(Base64.decode(obj.text, Base64.NO_WRAP))
+                decrypt = cryptoProducer.getDecrypt()
+                encrypt = cryptoProducer.getEncrypt()
                 initialized.emit(true)
                 return receive()
             } else {
@@ -155,6 +160,8 @@ class PassPhraseAesProtocol(
 
     interface CryptoProducer {
         fun init()
+        fun getPublic(): ByteArray
+        fun applyOtherPublic(publicKey: ByteArray)
         fun getDecrypt(): (ByteArray) -> ByteArray
         fun getEncrypt(): (ByteArray) -> ByteArray
     }

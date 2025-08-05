@@ -8,19 +8,14 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-class CryptoManager(
-    passphrase: String,
+class CryptoAes(
+    key: ByteArray? = null,
+    passphrase: String? = null
 ) {
-    private val key = deriveKeyFromPassphrase(passphrase, byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7))
-
-    fun deriveKeyFromPassphrase(passphrase: String, salt: ByteArray): SecretKey {
-        log(CONN_TAG, "Crypto on thread ${Thread.currentThread().name}")
-        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        //todo set iterations to 100000
-        val spec = PBEKeySpec(passphrase.toCharArray(), salt, 10000, 256)
-        val tmp = factory.generateSecret(spec)
-        log(CONN_TAG, "Pass ${passphrase}:  generated key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
-        return SecretKeySpec(tmp.encoded, "AES")
+    private val key = if (key != null) {
+        createAesKeyFromBytes(key)
+    } else {
+        deriveKeyFromPassphrase(passphrase!!, byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7))
     }
 
     fun encryptDataWhole(data: ByteArray): ByteArray {
@@ -53,5 +48,19 @@ class CryptoManager(
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
         val decrypted = cipher.doFinal(encrypted)
         return decrypted
+    }
+
+    private fun createAesKeyFromBytes(secretBytes: ByteArray): SecretKey {
+        return SecretKeySpec(secretBytes, 0, secretBytes.size, "AES")
+    }
+
+    private fun deriveKeyFromPassphrase(passphrase: String, salt: ByteArray): SecretKey {
+        log(CONN_TAG, "Crypto on thread ${Thread.currentThread().name}")
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        //todo set iterations to 100000
+        val spec = PBEKeySpec(passphrase.toCharArray(), salt, 10000, 256)
+        val tmp = factory.generateSecret(spec)
+        log(CONN_TAG, "Pass ${passphrase}:  generated key " + tmp.encoded.joinToString(" ") { "%02X".format(it) })
+        return SecretKeySpec(tmp.encoded, "AES")
     }
 }

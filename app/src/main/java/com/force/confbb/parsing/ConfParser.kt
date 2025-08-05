@@ -8,12 +8,12 @@ import com.force.confb.pmodel.IntParameter
 import com.force.confb.pmodel.Message
 import com.force.confb.pmodel.ParameterInfo
 import com.force.confb.pmodel.StringParameter
-import com.force.connection.protocol.PassPhraseAesProtocol
+import com.force.connection.protocol.ProtocolParser
 import com.force.misc.TAG
 import com.force.model.ConfException
 import com.force.model.DataType
 
-class ConfParser : PassPhraseAesProtocol.Parser {
+class ConfParser : ProtocolParser {
     override fun parse(data: ByteArray): Any {
         val dataTypeCode = data[0]
         val dataToParse = data.drop(1).toByteArray()

@@ -10,7 +10,7 @@ import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
 import com.force.connection.protocol.PassPhraseAesProtocol
-import com.force.crypto.CryptoManager
+import com.force.crypto.CryptoAes
 import com.force.misc.PASS_PHRASE
 import com.force.misc.TAG
 import dagger.assisted.Assisted
@@ -36,9 +36,9 @@ class DeviceViewModel @AssistedInject constructor(
                 serializer = ConfSerializer(),
                 parser = ConfParser(),
                 cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
-                    private lateinit var crypto: CryptoManager
+                    private lateinit var crypto: CryptoAes
                     override fun init() {
-                        crypto = CryptoManager(passphrase = passPhrase.value.trim())
+                        crypto = CryptoAes(passphrase = passPhrase.value.trim())
                     }
 
                     override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData

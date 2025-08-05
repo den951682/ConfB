@@ -8,9 +8,13 @@ import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.connection.impl.BluetoothServerDeviceConnection
 import com.force.connection.connection.impl.WifiClientDeviceConnection
 import com.force.connection.connection.impl.WifiServerDeviceConnection
+import com.force.connection.protocol.EcdhAesProtocol
 import com.force.connection.protocol.PassPhraseAesProtocol
 import com.force.connection.protocol.PlainProtocol
-import com.force.crypto.CryptoManager
+import com.force.connection.protocol.ProtocolParser
+import com.force.connection.protocol.ProtocolSerializer
+import com.force.crypto.CryptoAes
+import com.force.crypto.CryptoEcdh
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,25 +57,59 @@ class MainViewModel @Inject constructor(
 
     val passPhraseAesProtocol by lazy {
         PassPhraseAesProtocol(
-            serializer = object : PassPhraseAesProtocol.Serializer {
+            serializer = object : ProtocolSerializer {
                 override fun serialize(data: Any): ByteArray {
                     return data.toString().toByteArray()
                 }
             },
-            parser = object : PassPhraseAesProtocol.Parser {
+            parser = object : ProtocolParser {
                 override fun parse(data: ByteArray): String {
                     return String(data)
                 }
             },
             cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
-                private lateinit var crypto: CryptoManager
+                private lateinit var crypto: CryptoAes
                 override fun init() {
-                    crypto = CryptoManager(passphrase = "PASS")
+                    crypto = CryptoAes(passphrase = "PASS")
                 }
 
                 override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
 
                 override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
+            },
+            header = "HEADER\n".toByteArray()
+        )
+    }
+
+    val ecdhAesProtocol by always {
+        EcdhAesProtocol(
+            serializer = object : ProtocolSerializer {
+                override fun serialize(data: Any): ByteArray {
+                    return data.toString().toByteArray()
+                }
+            },
+            parser = object : ProtocolParser {
+                override fun parse(data: ByteArray): String {
+                    return String(data)
+                }
+            },
+            cryptoProducer = object : EcdhAesProtocol.CryptoProducer {
+                private lateinit var crypto: CryptoEcdh
+                override fun init() {
+                    crypto = CryptoEcdh()
+                }
+
+                override fun getPublic(): ByteArray {
+                    return crypto.getPublicKey()
+                }
+
+                override fun applyOtherPublic(publicKey: ByteArray) {
+                    crypto.applyOtherPublic(publicKey)
+                }
+
+                override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData
+
+                override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptData
             },
             header = "HEADER\n".toByteArray()
         )
@@ -145,7 +183,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = btServerFabric.create(
                 viewModelScope,
-                passPhraseAesProtocol
+                ecdhAesProtocol
             )
             c.start()
             _connection.emit(c)
@@ -171,7 +209,7 @@ class MainViewModel @Inject constructor(
             val c = btClientFabric.create(
                 address,
                 viewModelScope,
-                passPhraseAesProtocol
+                ecdhAesProtocol
             )
             c.start()
             _connection.emit(c)
