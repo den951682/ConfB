@@ -1,4 +1,3 @@
-import com.google.protobuf.gradle.proto
 import java.util.Properties
 
 plugins {
@@ -8,36 +7,11 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.protobuf)
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.19.1"
-    }
-
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("java") {
-                    option("lite")
-                }
-            }
-        }
-    }
-}
-
 android {
-    sourceSets {
-        getByName("main") {
-            proto {
-                srcDir("../proto-src/definitions")
-            }
-        }
-    }
-
     namespace = "com.force.confbb"
     compileSdk = 36
 
