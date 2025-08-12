@@ -210,9 +210,8 @@ fun Device(
                                             onValueChange = { viewModel.onValueChanged(entry.key, it) },
                                             modifier = Modifier.wrapContentSize(),
                                             range =
-                                                ((entry.value.minValue as? Int)?.toFloat() ?: Float.NEGATIVE_INFINITY)..
-                                                        ((entry.value.maxValue as? Int)?.toFloat()
-                                                            ?: Float.POSITIVE_INFINITY)
+                                                ((entry.value.minValue as? Float) ?: Float.NEGATIVE_INFINITY)..
+                                                        ((entry.value.maxValue as? Float) ?: Float.POSITIVE_INFINITY)
                                         )
                                     }
                                     if (entry.value.value is Float) {
