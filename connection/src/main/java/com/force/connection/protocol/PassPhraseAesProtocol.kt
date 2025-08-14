@@ -7,8 +7,6 @@ import com.force.model.ConfException
 import com.force.model.DataType
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -53,8 +51,7 @@ class PassPhraseAesProtocol(
         }
         log(CONN_TAG, "Sending handshake")
         val handShake = HandshakeRequest.newBuilder().setText("HANDSHAKE").build().toByteArray()
-        //додано DataType.HandshakeRequest.code для більш простої реалізації протоколу на стороні embedded
-        val encrypted = encrypt(byteArrayOf(DataType.HandshakeRequest.code) + handShake)
+        val encrypted = encrypt(handShake)
         val toSend = byteArrayOf(encrypted.size.toByte()) + encrypted
         output.write(toSend)
         output.flush()
@@ -111,8 +108,7 @@ class PassPhraseAesProtocol(
         return try {
             if (!handshakeIsReceived) {
                 try {
-                    //відкидаємо перший байт типу який додано для більш простої реалізації протоколу на стороні embedded
-                    return HandshakeRequest.parseFrom(frame.drop(1).toByteArray())
+                    return HandshakeRequest.parseFrom(frame)
                 } catch (ex: Exception) {
                     log(CONN_TAG, "Failed to parse handshake: ${ex.message}")
                 }
