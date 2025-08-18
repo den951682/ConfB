@@ -4,7 +4,6 @@ import com.force.confb.pmodel.HandshakeRequest
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.model.ConfException
-import com.force.model.DataType
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import java.io.EOFException

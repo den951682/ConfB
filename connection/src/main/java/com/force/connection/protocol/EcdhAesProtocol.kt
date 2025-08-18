@@ -53,7 +53,8 @@ class EcdhAesProtocol(
         log(CONN_TAG, "Sending handshake with public key")
         val keyText = Base64.encodeToString(cryptoProducer.getPublic(), Base64.NO_WRAP)
         val handShake = HandshakeRequest.newBuilder().setText(keyText).build().toByteArray()
-        val toSend = byteArrayOf((handShake.size + 1).toByte(), DataType.HandshakeRequest.code) + handShake
+        val toSend = byteArrayOf(handShake.size.toByte()) + handShake
+        log(CONN_TAG, "handshake to send: " + toSend.joinToString { String.format(":%x", it)})
         output.write(toSend)
         output.flush()
     }
@@ -74,7 +75,8 @@ class EcdhAesProtocol(
             if (obj is HandshakeRequest) {
                 handshakeIsReceived = true
                 log(CONN_TAG, "Handshake received with key")
-                cryptoProducer.applyOtherPublic(Base64.decode(obj.text, Base64.NO_WRAP))
+                val key = Base64.decode(obj.text, Base64.NO_WRAP)
+                cryptoProducer.applyOtherPublic(key)
                 decrypt = cryptoProducer.getDecrypt()
                 encrypt = cryptoProducer.getEncrypt()
                 events.emit(ProtocolEvent.Ready)
@@ -116,8 +118,7 @@ class EcdhAesProtocol(
         return try {
             if (!handshakeIsReceived) {
                 try {
-                    //відкидаємо перший байт типу який додано для більш простої реалізації протоколу на стороні embedded
-                    return HandshakeRequest.parseFrom(frame.drop(1).toByteArray())
+                   return HandshakeRequest.parseFrom(frame)
                 } catch (ex: Exception) {
                     log(CONN_TAG, "Failed to parse handshake: ${ex.message}")
                 }
