@@ -10,8 +10,6 @@ import com.force.connection.connection.impl.BluetoothClientDeviceConnection
 import com.force.connection.device.RemoteDevice
 import com.force.connection.device.RemoteDeviceImpl
 import com.force.connection.protocol.EcdhAesProtocol
-import com.force.connection.protocol.PassPhraseAesProtocol
-import com.force.crypto.CryptoAes
 import com.force.crypto.CryptoEcdh
 import com.force.misc.PASS_PHRASE
 import com.force.misc.TAG

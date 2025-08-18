@@ -12,6 +12,7 @@ import com.force.connection.protocol.EcdhAesProtocol
 import com.force.connection.protocol.PassPhraseAesProtocol
 import com.force.connection.protocol.ProtocolParser
 import com.force.connection.protocol.ProtocolSerializer
+import com.force.connection.protocol.RawProtocol
 import com.force.crypto.CryptoAes
 import com.force.crypto.CryptoEcdh
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -114,6 +115,28 @@ class MainViewModel @Inject constructor(
         )
     }
 
+    val rawProtocol by always {
+        RawProtocol(
+            serializer = object : ProtocolSerializer {
+                override fun serialize(data: Any): ByteArray {
+                    return data.toString().toByteArray()
+                }
+            },
+            parser = object : ProtocolParser {
+                override fun parse(data: ByteArray): String {
+                    return String(data)
+                }
+            },
+            bindPhraseProducer = object : RawProtocol.BindPhraseProducer {
+                override fun getBindPhrase(): String {
+                    return "phrase"
+                }
+            },
+            true,
+            header = "HEADER\n".toByteArray()
+        )
+    }
+
     init {
         viewModelScope.launch {
             connection.filterNotNull().flatMapLatest { it.state }
@@ -131,11 +154,11 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiServerFabric.create(
                 viewModelScope,
-                passPhraseAesProtocol
+                rawProtocol
             )
             c.start()
             _connection.emit(c)
-            var n = 0
+            var n = 10
             while (isActive) {
                 try {
                     c.sendDataObject(n++)
@@ -156,7 +179,7 @@ class MainViewModel @Inject constructor(
         sendJob = viewModelScope.launchCancellable({
             val c = wifiClientFabric.create(
                 viewModelScope,
-                passPhraseAesProtocol
+                rawProtocol
             )
             c.start()
             _connection.emit(c)
