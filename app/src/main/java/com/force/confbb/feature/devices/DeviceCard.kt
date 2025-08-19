@@ -93,6 +93,16 @@ fun DeviceCard(
                 maxLines = 2
             )
 
+            Text(
+                text = device.first.protocol.asString(),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .alpha(0.75f)
+                    .padding(start = 16.dp, end = 48.dp, bottom = 8.dp),
+                maxLines = 2
+            )
+
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -236,7 +246,7 @@ fun ProtocolDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
+                Text(stringResource(R.string.cancel))
             }
         },
         title = { Text(stringResource(R.string.change_protocol)) },
@@ -256,20 +266,23 @@ fun ProtocolDialog(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = when (protocol) {
-                                Device.Protocol.EPHEMERAL ->
-                                    stringResource(R.string.protocol_ephemeral)
-
-                                Device.Protocol.PASSPHRASE ->
-                                    stringResource(R.string.protocol_passphrase)
-
-                                Device.Protocol.RAW ->
-                                    stringResource(R.string.protocol_raw)
-                            }
+                            text = protocol.asString()
                         )
                     }
                 }
             }
         }
     )
+}
+
+@Composable
+private fun Device.Protocol.asString() = when (this) {
+    Device.Protocol.EPHEMERAL ->
+        stringResource(R.string.protocol_ephemeral)
+
+    Device.Protocol.PASSPHRASE ->
+        stringResource(R.string.protocol_passphrase)
+
+    Device.Protocol.RAW ->
+        stringResource(R.string.protocol_raw)
 }
