@@ -58,7 +58,7 @@ class DeviceViewModel @AssistedInject constructor(
                         return passPhrase.value
                     }
                 },
-                true,
+                false,
                 header = "guard\n".toByteArray(Charsets.UTF_8)
             )
             factory.create(
