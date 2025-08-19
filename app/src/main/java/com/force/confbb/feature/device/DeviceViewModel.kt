@@ -53,6 +53,12 @@ class DeviceViewModel @AssistedInject constructor(
 
                     override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptData
                 },
+                bindPhraseProducer = object : EcdhAesProtocol.BindPhraseProducer {
+                    override fun getBindPhrase(): String {
+                        return passPhrase.value
+                    }
+                },
+                true,
                 header = "guard\n".toByteArray(Charsets.UTF_8)
             )
             factory.create(

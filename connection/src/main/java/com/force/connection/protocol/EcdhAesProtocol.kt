@@ -5,11 +5,10 @@ import com.force.confb.pmodel.HandshakeRequest
 import com.force.connection.CONN_TAG
 import com.force.connection.ConnectionDefaults.log
 import com.force.model.ConfException
-import com.force.model.DataType
+import com.force.model.ConfException.Companion.toCode
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -19,6 +18,9 @@ class EcdhAesProtocol(
     private val serializer: ProtocolSerializer,
     private val parser: ProtocolParser,
     private val cryptoProducer: CryptoProducer,
+    private val bindPhraseProducer: BindPhraseProducer,
+    //не треба, щоб дві сторони перевіряли фразу, достатньо перевірити з одної сторони
+    private val checkBindPhrase: Boolean,
     private val header: ByteArray? = null,
 ) : Protocol {
     override val events = MutableSharedFlow<ProtocolEvent>(
@@ -52,9 +54,13 @@ class EcdhAesProtocol(
         }
         log(CONN_TAG, "Sending handshake with public key")
         val keyText = Base64.encodeToString(cryptoProducer.getPublic(), Base64.NO_WRAP)
-        val handShake = HandshakeRequest.newBuilder().setText(keyText).build().toByteArray()
+        val handShake = HandshakeRequest
+            .newBuilder()
+            .setText(if (checkBindPhrase) "HANDSHAKE" else bindPhraseProducer.getBindPhrase())
+            .setText2(keyText)
+            .build().toByteArray()
         val toSend = byteArrayOf(handShake.size.toByte()) + handShake
-        log(CONN_TAG, "handshake to send: " + toSend.joinToString { String.format(":%x", it)})
+        log(CONN_TAG, "handshake to send: " + toSend.joinToString { String.format(":%x", it) })
         output.write(toSend)
         output.flush()
     }
@@ -74,8 +80,16 @@ class EcdhAesProtocol(
         if (!handshakeIsReceived) {
             if (obj is HandshakeRequest) {
                 handshakeIsReceived = true
+                if(checkBindPhrase) {
+                    if(obj.text != bindPhraseProducer.getBindPhrase()){
+                        output.write(byteArrayOf(ConfException.BindPhraseException().toCode().toByte()))
+                        output.flush()
+                        delay(50)
+                        throw ConfException.BindPhraseException()
+                    }
+                }
                 log(CONN_TAG, "Handshake received with key")
-                val key = Base64.decode(obj.text, Base64.NO_WRAP)
+                val key = Base64.decode(obj.text2, Base64.NO_WRAP)
                 cryptoProducer.applyOtherPublic(key)
                 decrypt = cryptoProducer.getDecrypt()
                 encrypt = cryptoProducer.getEncrypt()
@@ -118,7 +132,7 @@ class EcdhAesProtocol(
         return try {
             if (!handshakeIsReceived) {
                 try {
-                   return HandshakeRequest.parseFrom(frame)
+                    return HandshakeRequest.parseFrom(frame)
                 } catch (ex: Exception) {
                     log(CONN_TAG, "Failed to parse handshake: ${ex.message}")
                 }
@@ -181,5 +195,9 @@ class EcdhAesProtocol(
         fun applyOtherPublic(publicKey: ByteArray)
         fun getDecrypt(): (ByteArray) -> ByteArray
         fun getEncrypt(): (ByteArray) -> ByteArray
+    }
+
+    interface BindPhraseProducer {
+        fun getBindPhrase(): String
     }
 }

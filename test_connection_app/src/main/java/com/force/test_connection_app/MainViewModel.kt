@@ -111,6 +111,13 @@ class MainViewModel @Inject constructor(
 
                 override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptData
             },
+            bindPhraseProducer = object : EcdhAesProtocol.BindPhraseProducer {
+                override fun getBindPhrase(): String {
+                    return "PASS1"
+                }
+
+            },
+            true,
             header = "HEADER\n".toByteArray()
         )
     }
