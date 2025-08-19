@@ -6,5 +6,12 @@ data class Device(
     val name: String,
     val address: String,
     val passphrase: String = PASS_PHRASE,
-    val lastSeen: Long = 0L
-)
+    val lastSeen: Long = 0L,
+    val protocol: Protocol = Protocol.EPHEMERAL
+) {
+    enum class Protocol {
+        EPHEMERAL,
+        PASSPHRASE,
+        RAW
+    }
+}

@@ -8,6 +8,7 @@ interface SavedDevicesRepository {
     suspend fun getDevice(id: String): Device?
     suspend fun addDevice(device: Device)
     suspend fun changePassphrase(device: Device, newPassphrase: String)
+    suspend fun changeProtocol(device: Device, protocol: Device.Protocol)
     suspend fun setLastSeen(id: String, lastSeen: Long)
     suspend fun setName(id: String, name: String)
     suspend fun deleteDevice(id: String)

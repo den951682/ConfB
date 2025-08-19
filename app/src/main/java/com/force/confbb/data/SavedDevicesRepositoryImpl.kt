@@ -34,6 +34,11 @@ class SavedDevicesRepositoryImpl @Inject constructor(
         dao.update(updated.toEntity())
     }
 
+    override suspend fun changeProtocol(device: Device, protocol: Device.Protocol) {
+        val updated = device.copy(protocol = protocol)
+        dao.update(updated.toEntity())
+    }
+
     override suspend fun setLastSeen(id: String, lastSeen: Long) {
         dao.setLastSeen(id, lastSeen)
     }

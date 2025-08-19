@@ -6,6 +6,7 @@
     <string name="cancel">Відміна</string>
     <string name="change">Змінити</string>
     <string name="change_passphrase">Змінити Pass-фразу</string>
+    <string name="change_protocol">Протокол зв\'язку</string>
     <string name="connected">Підключено</string>
     <string name="connecting">Підключення</string>
     <string name="delete">Видалити</string>
@@ -20,6 +21,9 @@
     <string name="next">Далі</string>
     <string name="no_devices">У тебе немає підключених пристроїв, увімкни пристрій і натисни кнопку "+"</string>
     <string name="pass_phrase_hint_default">Введи пасс-фразу, або залиш як є (якщо це перше підключення і (або) на пристрої пасс-фраза не змінювалалсь</string>
+    <string name="protocol_ephemeral">Ефемерний AES</string>
+    <string name="protocol_raw">Без шифрування</string>
+    <string name="protocol_passphrase">AES з Pass-фрази</string>
     <string name="retry">Повторити</string>
     <string name="retry_search">Повторити пошук</string>
     <string name="scan_devices_empty">Нічого не знайдено, увімкніть пристрій та переведіть його в режим видимості</string>

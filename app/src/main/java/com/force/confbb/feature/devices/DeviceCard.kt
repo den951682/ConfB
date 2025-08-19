@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,6 +58,7 @@ fun DeviceCard(
     device: Pair<Device, Boolean>,
     onMenuClick: (Device, String) -> Unit,
     onChangePassphrase: (Device, String) -> Unit,
+    onChangeProtocol: (Device, Device.Protocol) -> Unit,
     onClick: (Device) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -102,7 +105,9 @@ fun DeviceCard(
                 }
 
                 var showDialog by remember { mutableStateOf(false) }
+                var showProtocolDialog by remember { mutableStateOf(false) }
                 var newPassphrase by remember { mutableStateOf("") }
+                var newProtocol by remember { mutableStateOf(Device.Protocol.EPHEMERAL) }
 
                 DropdownMenu(
                     expanded = menuExpanded,
@@ -115,6 +120,15 @@ fun DeviceCard(
                             showDialog = true
                             menuExpanded = false
                             newPassphrase = device.first.passphrase
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.change_protocol)) },
+                        onClick = {
+                            AnalyticsLogger.logButtonClicked("devices_menu_change_protocol")
+                            showProtocolDialog = true
+                            menuExpanded = false
+                            newProtocol = device.first.protocol
                         }
                     )
                     DropdownMenuItem(
@@ -167,6 +181,17 @@ fun DeviceCard(
                         }
                     )
                 }
+                if (showProtocolDialog) {
+                    ProtocolDialog(
+                        selected = newProtocol,
+                        onDismiss = { showProtocolDialog = false },
+                        onConfirm = { protocol ->
+                            newProtocol = protocol
+                            showProtocolDialog = false
+                            onChangeProtocol(device.first, protocol)
+                        }
+                    )
+                }
             }
 
 
@@ -192,4 +217,59 @@ fun DeviceCard(
             )
         }
     }
+}
+
+@Composable
+fun ProtocolDialog(
+    selected: Device.Protocol,
+    onDismiss: () -> Unit,
+    onConfirm: (Device.Protocol) -> Unit
+) {
+    var current by remember { mutableStateOf(selected) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = { onConfirm(current) }) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+        title = { Text(stringResource(R.string.change_protocol)) },
+        text = {
+            Column {
+                Device.Protocol.entries.forEach { protocol ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { current = protocol }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        RadioButton(
+                            selected = (current == protocol),
+                            onClick = { current = protocol }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = when (protocol) {
+                                Device.Protocol.EPHEMERAL ->
+                                    stringResource(R.string.protocol_ephemeral)
+
+                                Device.Protocol.PASSPHRASE ->
+                                    stringResource(R.string.protocol_passphrase)
+
+                                Device.Protocol.RAW ->
+                                    stringResource(R.string.protocol_raw)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    )
 }

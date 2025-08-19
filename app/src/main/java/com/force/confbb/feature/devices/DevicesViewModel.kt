@@ -50,6 +50,12 @@ class DevicesViewModel @Inject constructor(
         }
     }
 
+    fun onChangeProtocol(device: Device, protocol: Device.Protocol) {
+        viewModelScope.launch {
+            savedDevicesRepository.changeProtocol(device, protocol)
+        }
+    }
+
     sealed class SavedDeviceState {
         data object Loading : SavedDeviceState()
         data class Loaded(

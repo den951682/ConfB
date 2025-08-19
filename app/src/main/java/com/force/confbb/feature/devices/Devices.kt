@@ -230,6 +230,7 @@ fun Devices(
                                 }
                             },
                             onChangePassphrase = viewModel::onChangePassphrase,
+                            onChangeProtocol = viewModel::onChangeProtocol,
                             onMenuClick = { deviceEntity, action ->
                                 when (action) {
                                     "delete" -> viewModel.onDeleteDevice(deviceEntity)
