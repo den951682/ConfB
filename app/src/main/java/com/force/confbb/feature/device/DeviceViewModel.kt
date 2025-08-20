@@ -22,20 +22,24 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel(assistedFactory = DeviceViewModel.Factory::class)
 class DeviceViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
     private val factory: BluetoothClientDeviceConnection.Factory,
     private val savedDevicesRepository: SavedDevicesRepository,
 ) : ViewModel() {
-    private val _remoteDevice = MutableStateFlow<RemoteDeviceImpl?>(null)
-    val remoteDevice: StateFlow<RemoteDeviceImpl?> = _remoteDevice
+    private val _remoteDevice = MutableStateFlow<RemoteDevice?>(null)
+    val remoteDevice: StateFlow<RemoteDevice?> = _remoteDevice
 
     val protocol = MutableStateFlow(Device.Protocol.EPHEMERAL)
 
@@ -69,9 +73,10 @@ class DeviceViewModel @AssistedInject constructor(
         }
 
         viewModelScope.launch {
-            _remoteDevice.value?.state
-                ?.filterIsInstance<RemoteDevice.State.Connected>()
-                ?.collect {
+            _remoteDevice.filterNotNull()
+                .flatMapLatest { it.state }
+                .filterIsInstance<RemoteDevice.State.Connected>()
+                .collect {
                     savedDevicesRepository.addDevice(it.device.copy(passphrase = passPhrase.value))
                 }
         }

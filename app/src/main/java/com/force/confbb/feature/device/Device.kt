@@ -58,7 +58,7 @@ import com.force.confbb.designsystem.NumValueSelector
 import com.force.connection.device.RemoteDevice
 import com.force.misc.PASS_PHRASE
 import com.force.model.ConfException
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +100,9 @@ fun Device(
             }
         }
         Column(modifier = Modifier.fillMaxSize()) {
-            val name by remoteDevice?.name?.collectAsStateWithLifecycle("") ?: remember { mutableStateOf("") }
+            val name by remoteDevice?.name?.map { it ?: "" }?.collectAsStateWithLifecycle("")
+                ?: remember { mutableStateOf("") }
+
             TopAppBar(
                 title = {
                     Text(
@@ -251,7 +253,8 @@ fun Device(
                     }
                     if (entry.value.id == 5) {
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            val isFast by remoteDevice?.isFast?.collectAsStateWithLifecycle(false) ?: remember { mutableStateOf(false) }
+                            val isFast by remoteDevice?.isFast?.collectAsStateWithLifecycle(false)
+                                ?: remember { mutableStateOf(false) }
                             JoystickVisualizer(
                                 x.value, y.value,
                                 modifier = Modifier
