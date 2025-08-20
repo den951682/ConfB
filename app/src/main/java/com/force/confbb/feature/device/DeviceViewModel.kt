@@ -50,26 +50,14 @@ class DeviceViewModel @AssistedInject constructor(
         Log.d(TAG, "Creating ViewModel for device: $deviceAddress $this")
         viewModelScope.launch {
             val device = savedDevicesRepository.getDevice(deviceAddress)
+            protocol.value = device?.protocol ?: Device.Protocol.EPHEMERAL
             device?.passphrase?.let {
                 passPhrase.value = it
                 isPassPhraseSet.value = true
+                startConnection()
             } ?: run {
                 isPassPhraseSet.value = false
             }
-            val protocol = device?.protocol ?: Device.Protocol.EPHEMERAL
-            _remoteDevice.value = RemoteDeviceImpl(
-                scope = viewModelScope,
-                connection = run {
-                    val protocol = getProtocol(protocol)
-                    factory.create(
-                        deviceAddress = deviceAddress,
-                        scope = viewModelScope,
-                        protocol = protocol
-                    )
-                }
-            )
-            isPassPhraseSet.first { it == true }
-            _remoteDevice.value?.start()
         }
 
         viewModelScope.launch {
@@ -77,7 +65,13 @@ class DeviceViewModel @AssistedInject constructor(
                 .flatMapLatest { it.state }
                 .filterIsInstance<RemoteDevice.State.Connected>()
                 .collect {
-                    savedDevicesRepository.addDevice(it.device.copy(passphrase = passPhrase.value))
+                    savedDevicesRepository.addDevice(
+                        it.device
+                            .copy(
+                                passphrase = passPhrase.value,
+                                protocol = protocol.value
+                            )
+                    )
                 }
         }
     }
@@ -92,6 +86,29 @@ class DeviceViewModel @AssistedInject constructor(
         value: T
     ) {
         _remoteDevice.value?.setParameterValue(parameterId, value)
+    }
+
+    fun onChangeProtocol(protocol: Device.Protocol) {
+        this.protocol.value = protocol
+    }
+
+    fun startConnection() {
+        isPassPhraseSet.value = true
+        viewModelScope.launch {
+            _remoteDevice.value = RemoteDeviceImpl(
+                scope = viewModelScope,
+                connection = run {
+                    val protocol = getProtocol(protocol.value)
+                    factory.create(
+                        deviceAddress = deviceAddress,
+                        scope = viewModelScope,
+                        protocol = protocol
+                    )
+                }
+            )
+            isPassPhraseSet.first { it == true }
+            _remoteDevice.value?.start()
+        }
     }
 
     private fun getProtocol(protocol: Device.Protocol): Protocol {

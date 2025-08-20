@@ -1,7 +1,9 @@
 package com.force.confbb.feature.device
 
+import ProtocolDialog
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -40,6 +44,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import asString
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
 import com.force.confbb.designsystem.JoystickVisualizer
@@ -292,6 +298,8 @@ fun Device(
             LaunchedEffect(Unit) {
                 AnalyticsLogger.logScreenView("device_passphrase")
             }
+            var showProtocolDialog by remember { mutableStateOf(false) }
+            val protocol = viewModel.protocol.collectAsStateWithLifecycle()
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -303,6 +311,26 @@ fun Device(
                 val wasChanged by remember(text) {
                     derivedStateOf { text.value != PASS_PHRASE }
                 }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.clickable { showProtocolDialog = true }
+                ) {
+                    Text(
+                        text = "Протокол зв'язку: ${protocol.value.asString()}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Select protocol"
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
                 Text(text = stringResource(R.string.pass_phrase_hint_default), textAlign = TextAlign.Center)
 
                 OutlinedTextField(
@@ -318,11 +346,21 @@ fun Device(
                 Button(
                     onClick = {
                         AnalyticsLogger.logButtonClicked("device_passphrase_set")
-                        viewModel.isPassPhraseSet.value = true
+                        viewModel.startConnection()
                     }
                 ) {
                     Text(stringResource(if (wasChanged) R.string.next else R.string.leave))
                 }
+            }
+            if (showProtocolDialog) {
+                ProtocolDialog(
+                    selected = protocol.value,
+                    onDismiss = { showProtocolDialog = false },
+                    onConfirm = { selected ->
+                        viewModel.onChangeProtocol(selected)
+                        showProtocolDialog = false
+                    }
+                )
             }
         }
     }
