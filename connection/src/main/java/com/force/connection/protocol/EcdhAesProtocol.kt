@@ -52,6 +52,10 @@ class EcdhAesProtocol(
             log(CONN_TAG, "No header")
             output.write(0)
         }
+        if (!checkBindPhrase) sendHandshake()
+    }
+
+    private fun sendHandshake() {
         log(CONN_TAG, "Sending handshake with public key")
         val keyText = Base64.encodeToString(cryptoProducer.getPublic(), Base64.NO_WRAP)
         val handShake = HandshakeRequest
@@ -80,12 +84,14 @@ class EcdhAesProtocol(
         if (!handshakeIsReceived) {
             if (obj is HandshakeRequest) {
                 handshakeIsReceived = true
-                if(checkBindPhrase) {
-                    if(obj.text != bindPhraseProducer.getBindPhrase()){
+                if (checkBindPhrase) {
+                    if (obj.text != bindPhraseProducer.getBindPhrase()) {
                         output.write(byteArrayOf(ConfException.BindPhraseException().toCode().toByte()))
                         output.flush()
                         delay(50)
                         throw ConfException.BindPhraseException()
+                    } else {
+                        sendHandshake()
                     }
                 }
                 log(CONN_TAG, "Handshake received with key")

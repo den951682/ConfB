@@ -46,6 +46,10 @@ class RawProtocol(
             log(CONN_TAG, "No header")
             output.write(0)
         }
+        if(!checkBindPhrase) sendHandshake()
+    }
+
+    private fun sendHandshake() {
         log(CONN_TAG, "Sending handshake")
         val handshakeText = if(checkBindPhrase) "HANDSHAKE" else bindPhraseProducer.getBindPhrase()
         val handShake = HandshakeRequest.newBuilder().setText(handshakeText).build().toByteArray()
@@ -72,6 +76,8 @@ class RawProtocol(
                         output.flush()
                         delay(10)
                         throw ConfException.BindPhraseException()
+                    } else {
+                        sendHandshake()
                     }
                 }
                 events.emit(ProtocolEvent.Ready)
