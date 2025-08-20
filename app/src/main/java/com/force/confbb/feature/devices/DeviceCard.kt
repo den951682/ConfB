@@ -1,5 +1,6 @@
 package com.force.confbb.feature.devices
 
+import ProtocolDialog
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -49,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import asString
 import com.force.confbb.R
 import com.force.confbb.analytics.AnalyticsLogger
 import com.force.model.Device
@@ -227,62 +229,4 @@ fun DeviceCard(
             )
         }
     }
-}
-
-@Composable
-fun ProtocolDialog(
-    selected: Device.Protocol,
-    onDismiss: () -> Unit,
-    onConfirm: (Device.Protocol) -> Unit
-) {
-    var current by remember { mutableStateOf(selected) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { onConfirm(current) }) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-        title = { Text(stringResource(R.string.change_protocol)) },
-        text = {
-            Column {
-                Device.Protocol.entries.forEach { protocol ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { current = protocol }
-                            .padding(vertical = 8.dp)
-                    ) {
-                        RadioButton(
-                            selected = (current == protocol),
-                            onClick = { current = protocol }
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = protocol.asString()
-                        )
-                    }
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun Device.Protocol.asString() = when (this) {
-    Device.Protocol.EPHEMERAL ->
-        stringResource(R.string.protocol_ephemeral)
-
-    Device.Protocol.PASSPHRASE ->
-        stringResource(R.string.protocol_passphrase)
-
-    Device.Protocol.RAW ->
-        stringResource(R.string.protocol_raw)
 }
