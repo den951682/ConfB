@@ -17,7 +17,8 @@ fun JoystickVisualizer(
     xValue: Int,
     yValue: Int,
     modifier: Modifier = Modifier,
-    pointRadius: Dp = 6.dp
+    pointRadius: Dp = 6.dp,
+    isFast: Boolean = false
 ) {
     val clampedX = xValue.coerceIn(0, 4095)
     val clampedY = yValue.coerceIn(0, 4095)
@@ -25,14 +26,15 @@ fun JoystickVisualizer(
     val normalizedX = (clampedX - 2048) / 2048f
     val normalizedY = (clampedY - 2048) / 2048f
 
+    val duration = if(isFast) 1 else 100
     val animatedX by animateFloatAsState(
         targetValue = normalizedX,
-        animationSpec = tween(durationMillis = 100, easing = LinearOutSlowInEasing),
+        animationSpec = tween(durationMillis = duration, easing = LinearOutSlowInEasing),
         label = "JoystickX"
     )
     val animatedY by animateFloatAsState(
         targetValue = normalizedY,
-        animationSpec = tween(durationMillis = 100, easing = LinearOutSlowInEasing),
+        animationSpec = tween(durationMillis = duration, easing = LinearOutSlowInEasing),
         label = "JoystickY"
     )
     val color = MaterialTheme.colorScheme.onBackground

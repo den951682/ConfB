@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,7 @@ import com.force.confbb.designsystem.NumValueSelector
 import com.force.connection.device.RemoteDevice
 import com.force.misc.PASS_PHRASE
 import com.force.model.ConfException
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,8 +71,12 @@ fun Device(
 ) {
     val isPassPhraseSet by viewModel.isPassPhraseSet.collectAsStateWithLifecycle()
     if (isPassPhraseSet == true) {
-        val parameterList = remember { derivedStateOf { viewModel.remoteDevice.parameters.entries.toList() } }
-        val state by viewModel.remoteDevice.state.collectAsStateWithLifecycle(RemoteDevice.State.Connecting)
+        val remoteDevice by viewModel.remoteDevice.collectAsState()
+        val parameterList = remember { derivedStateOf { remoteDevice?.parameters?.entries?.toList() ?: emptyList() } }
+        val state by remoteDevice
+            ?.state
+            ?.collectAsStateWithLifecycle(initialValue = RemoteDevice.State.Connecting)
+            ?: remember { mutableStateOf(RemoteDevice.State.Connecting) }
 
         val error = state is RemoteDevice.State.Error
         val connected = state is RemoteDevice.State.Connected
@@ -78,7 +84,7 @@ fun Device(
             AnalyticsLogger.logScreenView("device_connected")
         }
         LaunchedEffect(Unit) {
-            viewModel.remoteDevice.events.collect { event ->
+            remoteDevice?.events?.collect { event ->
                 when (event) {
                     is RemoteDevice.Event.Error -> {}
                     is RemoteDevice.Event.Message -> {
@@ -94,7 +100,7 @@ fun Device(
             }
         }
         Column(modifier = Modifier.fillMaxSize()) {
-            val name by viewModel.remoteDevice.name.collectAsStateWithLifecycle("")
+            val name by remoteDevice?.name?.collectAsStateWithLifecycle("") ?: remember { mutableStateOf("") }
             TopAppBar(
                 title = {
                     Text(
@@ -245,12 +251,14 @@ fun Device(
                     }
                     if (entry.value.id == 5) {
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            val isFast by remoteDevice?.isFast?.collectAsStateWithLifecycle(false) ?: remember { mutableStateOf(false) }
                             JoystickVisualizer(
                                 x.value, y.value,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(200.dp)
                                     .padding(vertical = 8.dp),
+                                isFast = isFast
                             )
                         }
                     }

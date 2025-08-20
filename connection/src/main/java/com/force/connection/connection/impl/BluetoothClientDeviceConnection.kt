@@ -10,6 +10,7 @@ import com.force.connection.connection.ConnectionSocketIO
 import com.force.connection.connection.DeviceConnection
 import com.force.connection.connection.SocketIO
 import com.force.connection.protocol.Protocol
+import com.force.connection.protocol.RawProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -32,7 +33,8 @@ class BluetoothClientDeviceConnection @AssistedInject constructor(
         DeviceConnection.Info(
             type = DeviceConnection.Type.Bluetooth,
             address = deviceAddress,
-            name = bluetoothManager.adapter.getRemoteDevice(deviceAddress).name ?: deviceAddress
+            name = bluetoothManager.adapter.getRemoteDevice(deviceAddress).name ?: deviceAddress,
+            isFast = protocol is RawProtocol
         )
     )
 

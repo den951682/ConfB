@@ -8,6 +8,7 @@ import com.force.connection.connection.ConnectionSocketIO
 import com.force.connection.connection.DeviceConnection
 import com.force.connection.connection.SocketIO
 import com.force.connection.protocol.Protocol
+import com.force.connection.protocol.RawProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -37,7 +38,8 @@ class WifiServerDeviceConnection @AssistedInject constructor(
             type = DeviceConnection.Type.WifiServer,
             //todo use modern api to get IP address
             address = "${wifiManager.connectionInfo.ipAddress.asIp()}:$DEFAULT_PORT",
-            name = "WifiServer"
+            name = "WifiServer",
+            isFast = protocol is RawProtocol
         )
     )
 

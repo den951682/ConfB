@@ -6,6 +6,7 @@ import com.force.connection.connection.ConnectionSocketIO
 import com.force.connection.connection.DeviceConnection
 import com.force.connection.connection.SocketIO
 import com.force.connection.protocol.Protocol
+import com.force.connection.protocol.RawProtocol
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -28,7 +29,8 @@ class WifiClientDeviceConnection @AssistedInject constructor(
         DeviceConnection.Info(
             type = DeviceConnection.Type.WifiClient,
             address = "",
-            name = "WifiClient"
+            name = "WifiClient",
+            isFast = protocol is RawProtocol
         )
     )
 

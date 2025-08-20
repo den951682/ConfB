@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RemoteDevice {
     val name: Flow<String?>
     val address: Flow<String?>
+    val isFast: Flow<Boolean>
     val state: Flow<State>
     val events: Flow<Event>
     val parameters: Map<Int, DeviceParameter<*>>
