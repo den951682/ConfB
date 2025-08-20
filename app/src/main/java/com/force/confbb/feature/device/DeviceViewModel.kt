@@ -127,7 +127,7 @@ class DeviceViewModel @AssistedInject constructor(
                 cryptoProducer = object : PassPhraseAesProtocol.CryptoProducer {
                     private lateinit var crypto: CryptoAes
                     override fun init() {
-                        crypto = CryptoAes()
+                        crypto = CryptoAes(passphrase = passPhrase.value)
                     }
 
                     override fun getDecrypt(): (ByteArray) -> ByteArray = crypto::decryptData

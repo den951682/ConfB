@@ -12,6 +12,10 @@ class CryptoAes(
     key: ByteArray? = null,
     passphrase: String? = null
 ) {
+    init {
+        require(key != null || passphrase != null){"Crypto must initialized with key or with passphrase"}
+    }
+
     private val key = if (key != null) {
         createAesKeyFromBytes(key)
     } else {
