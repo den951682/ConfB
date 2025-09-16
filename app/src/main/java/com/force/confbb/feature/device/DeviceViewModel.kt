@@ -120,6 +120,7 @@ class DeviceViewModel @AssistedInject constructor(
     }
 
     private fun getProtocol(protocol: Device.Protocol): Protocol {
+        val loraHeader = if (loraAddress.value > 0) "lora${loraAddress.value}\n" else ""
         return when (protocol) {
             Device.Protocol.EPHEMERAL -> EcdhAesProtocol(
                 serializer = ConfSerializer(),
@@ -148,7 +149,7 @@ class DeviceViewModel @AssistedInject constructor(
                     }
                 },
                 false,
-                header = "guard\n".toByteArray(Charsets.UTF_8)
+                header = (loraHeader + "guard\n").toByteArray(Charsets.UTF_8)
             )
 
             Device.Protocol.PASSPHRASE -> PassPhraseAesProtocol(
@@ -164,7 +165,7 @@ class DeviceViewModel @AssistedInject constructor(
 
                     override fun getEncrypt(): (ByteArray) -> ByteArray = crypto::encryptDataWhole
                 },
-                header = "guard\n".toByteArray(Charsets.UTF_8)
+                header = (loraHeader + "guard\n").toByteArray(Charsets.UTF_8)
             )
 
             Device.Protocol.RAW -> RawProtocol(
@@ -176,7 +177,7 @@ class DeviceViewModel @AssistedInject constructor(
                     }
                 },
                 false,
-                header = "guard\n".toByteArray(Charsets.UTF_8)
+                header = (loraHeader + "guard\n").toByteArray(Charsets.UTF_8)
             )
         }
     }
