@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = DeviceViewModel.Factory::class)
 class DeviceViewModel @AssistedInject constructor(
     @Assisted val deviceAddress: String,
+    @Assisted val initialLoraAddress: Int,
     private val factory: BluetoothClientDeviceConnection.Factory,
     private val savedDevicesRepository: SavedDevicesRepository,
 ) : ViewModel() {
@@ -44,13 +45,15 @@ class DeviceViewModel @AssistedInject constructor(
     val protocol = MutableStateFlow(Device.Protocol.EPHEMERAL)
 
     val passPhrase = MutableStateFlow(PASS_PHRASE)
+    val loraAddress = MutableStateFlow(if (initialLoraAddress == -1) 0 else initialLoraAddress)
     val isPassPhraseSet = MutableStateFlow<Boolean?>(null)
 
     init {
         Log.d(TAG, "Creating ViewModel for device: $deviceAddress $this")
         viewModelScope.launch {
-            val device = savedDevicesRepository.getDevice(deviceAddress)
+            val device = savedDevicesRepository.getDevice(deviceAddress, initialLoraAddress)
             protocol.value = device?.protocol ?: Device.Protocol.EPHEMERAL
+            loraAddress.value = device?.loraAddress ?: if (initialLoraAddress == -1) 0 else initialLoraAddress
             device?.passphrase?.let {
                 passPhrase.value = it
                 isPassPhraseSet.value = true
@@ -69,7 +72,8 @@ class DeviceViewModel @AssistedInject constructor(
                         it.device
                             .copy(
                                 passphrase = passPhrase.value,
-                                protocol = protocol.value
+                                protocol = protocol.value,
+                                loraAddress = loraAddress.value
                             )
                     )
                 }
@@ -90,6 +94,10 @@ class DeviceViewModel @AssistedInject constructor(
 
     fun onChangeProtocol(protocol: Device.Protocol) {
         this.protocol.value = protocol
+    }
+
+    fun onChangeLoraAddress(address: Int) {
+        this.loraAddress.value = address
     }
 
     fun startConnection() {
@@ -176,7 +184,8 @@ class DeviceViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(
-            deviceAddress: String
+            deviceAddress: String,
+            loraAddress: Int
         ): DeviceViewModel
     }
 }

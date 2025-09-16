@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -329,7 +331,58 @@ fun Device(
                     )
                 }
 
-                Spacer(Modifier.height(8.dp))
+                var showLoRaRouting by remember { mutableStateOf(false) }
+                val loraAddress = viewModel.loraAddress.map { it.toString() }.collectAsStateWithLifecycle("0")
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showLoRaRouting = !showLoRaRouting }
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Маршрутизація LoRa",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        imageVector = if (showLoRaRouting) Icons.Default.KeyboardArrowUp else Icons.Default.ArrowDropDown,
+                        contentDescription = "Expand LoRa routing"
+                    )
+                }
+
+                AnimatedVisibility(visible = showLoRaRouting) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Якщо адреса 0, то відбувається робота з локальним ESP32, " +
+                                    "інакше відбувається робота з віддаленим ESP32 через LoRa, " +
+                                    "адреса LoRa якого відповідає цій адресі."
+                        )
+                        OutlinedTextField(
+                            value = loraAddress.value,
+                            onValueChange = { input ->
+                                val num = input.toIntOrNull()
+                                if (num != null && num in 0..255) {
+                                    viewModel.onChangeLoraAddress(num)
+                                }else if (input.isEmpty()) {
+                                   viewModel.onChangeLoraAddress(0)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("LoRa адреса (0–255)") }
+                        )
+                    }
+                }
+
 
                 Text(text = stringResource(R.string.pass_phrase_hint_default), textAlign = TextAlign.Center)
 

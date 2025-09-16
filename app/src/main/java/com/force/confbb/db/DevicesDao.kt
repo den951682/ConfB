@@ -17,8 +17,8 @@ interface DevicesDao {
     @Query("SELECT * FROM devices")
     fun observeAll(): Flow<List<DeviceEntity>>
 
-    @Query("SELECT * FROM devices WHERE address = :id")
-    suspend fun getDevice(id: String): DeviceEntity?
+    @Query("SELECT * FROM devices WHERE address = :id AND loraAddress = :loraAddress")
+    suspend fun getDevice(id: String, loraAddress: Int): DeviceEntity?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(device: DeviceEntity)
@@ -29,12 +29,12 @@ interface DevicesDao {
     @Delete
     suspend fun delete(device: DeviceEntity)
 
-    @Query("DELETE FROM devices WHERE address = :id")
-    suspend fun deleteById(id: String)
+    @Query("DELETE FROM devices WHERE address = :id AND loraAddress = :loraAddress")
+    suspend fun deleteByIdAndLoraAddress(id: String, loraAddress: Int)
 
-    @Query("UPDATE devices SET lastSeen = :lastSeen WHERE address = :address")
-    suspend fun setLastSeen(address: String, lastSeen: Long)
+    @Query("UPDATE devices SET lastSeen = :lastSeen WHERE address = :address AND loraAddress = :loraAddress")
+    suspend fun setLastSeen(address: String, loraAddress: Int, lastSeen: Long)
 
-    @Query("UPDATE devices SET name = :name WHERE address = :address")
-    suspend fun setName(address: String, name: String)
+    @Query("UPDATE devices SET name = :name WHERE address = :address AND loraAddress = :loraAddress")
+    suspend fun setName(address: String, loraAddress: Int, name: String)
 }

@@ -40,7 +40,7 @@ class DevicesViewModel @Inject constructor(
 
     fun onDeleteDevice(device: Device) {
         viewModelScope.launch {
-            savedDevicesRepository.deleteDevice(device.address)
+            savedDevicesRepository.deleteDevice(device.address, device.loraAddress)
         }
     }
 

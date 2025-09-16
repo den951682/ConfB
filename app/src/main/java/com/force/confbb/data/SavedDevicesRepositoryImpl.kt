@@ -20,8 +20,8 @@ class SavedDevicesRepositoryImpl @Inject constructor(
             entities.map { it.toDevice() }
         }
 
-    override suspend fun getDevice(id: String): Device? {
-        return dao.getDevice(id)?.toDevice()
+    override suspend fun getDevice(id: String, loraAddress: Int): Device? {
+        return dao.getDevice(id, loraAddress)?.toDevice()
     }
 
     override suspend fun addDevice(device: Device) {
@@ -39,16 +39,16 @@ class SavedDevicesRepositoryImpl @Inject constructor(
         dao.update(updated.toEntity())
     }
 
-    override suspend fun setLastSeen(id: String, lastSeen: Long) {
-        dao.setLastSeen(id, lastSeen)
+    override suspend fun setLastSeen(id: String, loraAddress: Int, lastSeen: Long) {
+        dao.setLastSeen(id, loraAddress, lastSeen)
     }
 
 
-    override suspend fun setName(id: String, name: String) {
-        dao.setName(id, name)
+    override suspend fun setName(id: String, loraAddress: Int, name: String) {
+        dao.setName(id, loraAddress, name)
     }
 
-    override suspend fun deleteDevice(id: String) {
-        dao.deleteById(id)
+    override suspend fun deleteDevice(id: String, loraAddress: Int) {
+        dao.deleteByIdAndLoraAddress(id, loraAddress)
     }
 }

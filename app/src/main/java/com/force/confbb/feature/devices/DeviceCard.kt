@@ -78,7 +78,7 @@ fun DeviceCard(
             modifier = Modifier.fillMaxSize()
         ) {
             Image(
-                painter = painterResource(id = R.drawable.esp32),
+                painter = painterResource(id = if(device.first.loraAddress == 0) R.drawable.esp32 else R.drawable.lora),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -86,14 +86,27 @@ fun DeviceCard(
                     .alpha(0.25f)
             )
 
-            Text(
-                text = device.first.name,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            Column (
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(start = 16.dp, end = 48.dp, top = 8.dp),
-                maxLines = 2
-            )
+            ){
+                Text(
+                    text = device.first.name,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 48.dp, top = 8.dp),
+                    maxLines = 2
+                )
+                if(device.first.loraAddress > 0) {
+                    Text(
+                        text = "LoRa ${device.first.loraAddress}",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 48.dp, top = 2.dp),
+                        maxLines = 2
+                    )
+                }
+            }
 
             Text(
                 text = device.first.protocol.asString(),
@@ -206,27 +219,28 @@ fun DeviceCard(
                 }
             }
 
+            if(device.first.loraAddress == 0) {
+                val color = if (device.second) Color.Green else Color.Gray
+                val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 0.8f,
+                    targetValue = 1.45f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(800, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
 
-            val color = if (device.second) Color.Green else Color.Gray
-            val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 0.8f,
-                targetValue = 1.45f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(800, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "scale"
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp)
-                    .size(10.dp)
-                    .scale(if (device.second) scale else 1f)
-                    .background(color = color, shape = CircleShape)
-            )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp)
+                        .size(10.dp)
+                        .scale(if (device.second) scale else 1f)
+                        .background(color = color, shape = CircleShape)
+                )
+            }
         }
     }
 }

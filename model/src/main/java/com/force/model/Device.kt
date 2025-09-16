@@ -6,6 +6,7 @@ data class Device(
     val name: String,
     val address: String,
     val passphrase: String = PASS_PHRASE,
+    val loraAddress: Int = 0,
     val lastSeen: Long = 0L,
     val protocol: Protocol = Protocol.EPHEMERAL
 ) {

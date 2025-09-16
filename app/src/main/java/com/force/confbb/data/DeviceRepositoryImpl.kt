@@ -37,7 +37,7 @@ class DeviceRepositoryImpl @Inject constructor(
                     intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)?.let { device ->
                         val deviceHardwareAddress = device.address
                         val deviceName = device.name ?: deviceHardwareAddress ?: "Unknown"
-                        Device(deviceName, deviceHardwareAddress, "", System.currentTimeMillis())
+                        Device(deviceName, deviceHardwareAddress, "", 0, System.currentTimeMillis())
                             .also { newDevice ->
                                 _devices.value.find { it.address == newDevice.address }?.let {
                                     _devices.value = _devices.value.filter { it.address != newDevice.address }
@@ -45,8 +45,8 @@ class DeviceRepositoryImpl @Inject constructor(
                             }
                     }?.let {
                         scope.launch {
-                            savedDevicesRepository.setName(it.address, it.name)
-                            savedDevicesRepository.setLastSeen(it.address, System.currentTimeMillis())
+                            savedDevicesRepository.setName(it.address, it.loraAddress, it.name)
+                            savedDevicesRepository.setLastSeen(it.address, it.loraAddress, System.currentTimeMillis())
                         }
                         _devices.value += it
                     }

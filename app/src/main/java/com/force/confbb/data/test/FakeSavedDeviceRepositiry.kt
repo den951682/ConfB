@@ -27,7 +27,7 @@ class FakeSavedDeviceRepository @Inject constructor() : SavedDevicesRepository {
         Log.d(TAG, "Change protocol for ${device.address} to $protocol")
     }
 
-    override suspend fun getDevice(id: String): Device? {
+    override suspend fun getDevice(id: String, loraAddress: Int): Device? {
         return null;
     }
 
@@ -35,15 +35,15 @@ class FakeSavedDeviceRepository @Inject constructor() : SavedDevicesRepository {
 
     }
 
-    override suspend fun setLastSeen(id: String, lastSeen: Long) {
+    override suspend fun setLastSeen(id: String, loraAddress: Int, lastSeen: Long) {
 
     }
 
-    override suspend fun setName(id: String, name: String) {
+    override suspend fun setName(id: String, loraAddress: Int, name: String) {
 
     }
 
-    override suspend fun deleteDevice(id: String) {
+    override suspend fun deleteDevice(id: String, loraAddress: Int) {
     }
 
     private fun generateFakeDevices(): List<Device> {

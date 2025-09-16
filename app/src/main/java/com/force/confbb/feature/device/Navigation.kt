@@ -13,14 +13,14 @@ import kotlinx.serialization.Serializable
 object DeviceSectionRoute
 
 @Serializable
-data class DeviceRoute(val id: String, val newDevice: Boolean)
+data class DeviceRoute(val id: String, val loraAddress: Int, val newDevice: Boolean)
 
 fun NavController.navigateToDeviceSection(navOptions: NavOptions? = null) {
     navigate(DeviceSectionRoute, navOptions)
 }
 
-fun NavController.navigateToDevice(id: String, newDevice: Boolean, navOptions: NavOptions? = null) {
-    navigate(DeviceRoute(id, newDevice), navOptions)
+fun NavController.navigateToDevice(id: String, loraAddress: Int, newDevice: Boolean, navOptions: NavOptions? = null) {
+    navigate(DeviceRoute(id, loraAddress, newDevice), navOptions)
 }
 
 fun NavGraphBuilder.deviceSection(
@@ -29,10 +29,11 @@ fun NavGraphBuilder.deviceSection(
     onError: suspend (Throwable?, Boolean) -> Unit,
 ) {
     navigation<DeviceSectionRoute>(
-        startDestination = DeviceRoute("", true),
+        startDestination = DeviceRoute("", 0, true),
     ) {
         composable<DeviceRoute> { entry ->
             val id = entry.toRoute<DeviceRoute>().id
+            val loraAddress = entry.toRoute<DeviceRoute>().loraAddress
             val newDevice = entry.toRoute<DeviceRoute>().newDevice
             Device(
                 id,
@@ -42,7 +43,7 @@ fun NavGraphBuilder.deviceSection(
                 viewModel = hiltViewModel<DeviceViewModel, DeviceViewModel.Factory>(
                     key = id
                 ) { factory ->
-                    factory.create(id)
+                    factory.create(id, loraAddress)
                 })
         }
     }

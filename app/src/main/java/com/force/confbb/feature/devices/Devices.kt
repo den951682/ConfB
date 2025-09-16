@@ -67,7 +67,7 @@ fun NavController.navigateToDevices(navOptions: NavOptions? = null) {
 fun Devices(
     modifier: Modifier = Modifier,
     onAddDeviceClick: () -> Unit,
-    onDeviceClick: (String, newDevice: Boolean) -> Unit,
+    onDeviceClick: (String, loraAddress: Int, newDevice: Boolean) -> Unit,
     onShowSnackbar: suspend (String, String, SnackbarDuration) -> Boolean,
     viewModel: DevicesViewModel = hiltViewModel()
 ) {
@@ -223,7 +223,7 @@ fun Devices(
                             device = device,
                             onClick = {
                                 if (enabledState) {
-                                    onDeviceClick(it.address, false)
+                                    onDeviceClick(it.address, it.loraAddress, false)
                                 } else {
                                     AnalyticsLogger.log("bluetooth_disabled")
                                     startForResult.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
