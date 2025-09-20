@@ -146,12 +146,12 @@ fun Device(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(parameterList.value) { entry ->
-                    if (entry.value.id == 5) {
+                    if (entry.value.id == 7) {
                         if (entry.value.value is Int) {
                             x.value = entry.value.value as Int
                         }
                     }
-                    if (entry.value.id == 6) {
+                    if (entry.value.id == 8) {
                         if (entry.value.value is Int) {
                             y.value = entry.value.value as Int
                         }
@@ -259,17 +259,14 @@ fun Device(
                             }
                         }
                     }
-                    if (entry.value.id == 5) {
+                    if (entry.value.id == 7) {
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            val isFast by remoteDevice?.isFast?.collectAsStateWithLifecycle(false)
-                                ?: remember { mutableStateOf(false) }
                             JoystickVisualizer(
                                 x.value, y.value,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(200.dp)
-                                    .padding(vertical = 8.dp),
-                                isFast = isFast
+                                    .padding(vertical = 8.dp)
                             )
                         }
                     }

@@ -23,7 +23,6 @@ interface DeviceConnection {
         val type: Type,
         val address: String,
         val name: String,
-        val isFast: Boolean
     )
 
     enum class Type {

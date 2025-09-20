@@ -38,8 +38,7 @@ class WifiServerDeviceConnection @AssistedInject constructor(
             type = DeviceConnection.Type.WifiServer,
             //todo use modern api to get IP address
             address = "${wifiManager.connectionInfo.ipAddress.asIp()}:$DEFAULT_PORT",
-            name = "WifiServer",
-            isFast = protocol is RawProtocol
+            name = "WifiServer"
         )
     )
 

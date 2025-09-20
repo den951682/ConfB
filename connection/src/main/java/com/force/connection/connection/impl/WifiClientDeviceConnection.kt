@@ -29,8 +29,7 @@ class WifiClientDeviceConnection @AssistedInject constructor(
         DeviceConnection.Info(
             type = DeviceConnection.Type.WifiClient,
             address = "",
-            name = "WifiClient",
-            isFast = protocol is RawProtocol
+            name = "WifiClient"
         )
     )
 

@@ -31,8 +31,6 @@ class RemoteDeviceImpl(
 
     override val address = connection.info.map { info -> info.address }
 
-    override val isFast = connection.info.map { info -> info.isFast }
-
     override val state = connection.state
         .map {
             when (it) {

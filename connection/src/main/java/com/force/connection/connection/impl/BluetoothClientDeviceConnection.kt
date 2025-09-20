@@ -33,8 +33,7 @@ class BluetoothClientDeviceConnection @AssistedInject constructor(
         DeviceConnection.Info(
             type = DeviceConnection.Type.Bluetooth,
             address = deviceAddress,
-            name = bluetoothManager.adapter.getRemoteDevice(deviceAddress).name ?: deviceAddress,
-            isFast = protocol is RawProtocol
+            name = bluetoothManager.adapter.getRemoteDevice(deviceAddress).name ?: deviceAddress
         )
     )
 
